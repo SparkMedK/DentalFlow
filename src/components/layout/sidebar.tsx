@@ -13,32 +13,73 @@ import {
   Home,
   Users,
   Stethoscope,
-  Download,
+  UploadCloud,
+  Loader2,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { useAppContext } from "@/context/app-context";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { db } from "@/lib/firebase";
+import { doc, writeBatch } from "firebase/firestore";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { patients, consultations } = useAppContext();
+  const { toast } = useToast();
+  const [isBackingUp, setIsBackingUp] = useState(false);
 
-  const handleDownloadBackup = () => {
-    const backupData = {
-      patients,
-      consultations,
-      backupDate: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dentalflow_backup_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleFirebaseBackup = async () => {
+    if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+      toast({
+        variant: "destructive",
+        title: "Firebase Not Configured",
+        description: "Please add your Firebase configuration to the .env file.",
+      });
+      return;
+    }
+    
+    setIsBackingUp(true);
+    toast({ title: "Starting Backup", description: "Your data is being backed up to Firebase..." });
+
+    try {
+      const batch = writeBatch(db);
+      const backupTimestamp = new Date().toISOString();
+      const backupDocRef = doc(db, "backups", backupTimestamp);
+      
+      const backupMetadata = {
+        createdAt: backupTimestamp,
+        patientCount: patients.length,
+        consultationCount: consultations.length,
+      };
+      batch.set(backupDocRef, backupMetadata);
+
+      patients.forEach(patient => {
+        const patientRef = doc(db, "backups", backupTimestamp, "patients", patient.id);
+        batch.set(patientRef, patient);
+      });
+
+      consultations.forEach(consultation => {
+        const consultationRef = doc(db, "backups", backupTimestamp, "consultations", consultation.id);
+        batch.set(consultationRef, consultation);
+      });
+
+      await batch.commit();
+
+      toast({ title: "Backup Successful", description: "Your data has been successfully backed up." });
+    } catch (error) {
+      console.error("Firebase backup failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Backup Failed",
+        description: "There was an error backing up your data. Please check your Firebase configuration and console for details.",
+      });
+    } finally {
+      setIsBackingUp(false);
+    }
   };
+
 
   const navItems = [
     { href: "/", icon: Home, label: "Dashboard" },
@@ -80,12 +121,18 @@ export function Sidebar() {
         <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleDownloadBackup} className="h-9 w-9 md:h-8 md:w-8 text-muted-foreground hover:text-foreground">
-                  <Download className="h-5 w-5" />
-                  <span className="sr-only">Download Backup</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={handleFirebaseBackup} 
+                disabled={isBackingUp} 
+                className="h-9 w-9 md:h-8 md:w-8 text-muted-foreground hover:text-foreground"
+              >
+                  {isBackingUp ? <Loader2 className="h-5 w-5 animate-spin" /> : <UploadCloud className="h-5 w-5" />}
+                  <span className="sr-only">Backup to Firebase</span>
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">Download Backup</TooltipContent>
+            <TooltipContent side="right">Backup to Firebase</TooltipContent>
           </Tooltip>
         </nav>
       </TooltipProvider>
