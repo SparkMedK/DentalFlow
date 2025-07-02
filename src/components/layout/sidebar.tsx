@@ -31,7 +31,7 @@ export function Sidebar() {
   const [isBackingUp, setIsBackingUp] = useState(false);
 
   const handleFirebaseBackup = async () => {
-    if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+    if (!db) {
       toast({
         variant: "destructive",
         title: "Firebase Not Configured",
@@ -125,7 +125,7 @@ export function Sidebar() {
                 variant="ghost" 
                 size="icon" 
                 onClick={handleFirebaseBackup} 
-                disabled={isBackingUp} 
+                disabled={isBackingUp || !db} 
                 className="h-9 w-9 md:h-8 md:w-8 text-muted-foreground hover:text-foreground"
               >
                   {isBackingUp ? <Loader2 className="h-5 w-5 animate-spin" /> : <UploadCloud className="h-5 w-5" />}

@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { format } from "date-fns";
 
 const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
   const { deleteConsultation } = useAppContext();
@@ -107,7 +108,7 @@ export const columns: ColumnDef<Consultation>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => new Date(row.original.date).toLocaleDateString(),
+    cell: ({ row }) => format(new Date(row.original.date), "MM/dd/yyyy"),
   },
   {
     accessorKey: "time",

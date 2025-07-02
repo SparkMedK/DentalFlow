@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { format } from "date-fns";
 
 const ActionsCell = ({ patient }: { patient: Patient }) => {
   const { deletePatient } = useAppContext();
@@ -99,7 +100,7 @@ export const columns: ColumnDef<Patient>[] = [
   {
     accessorKey: "dob",
     header: "Date of Birth",
-    cell: ({ row }) => new Date(row.original.dob).toLocaleDateString(),
+    cell: ({ row }) => format(new Date(row.original.dob), "MM/dd/yyyy"),
   },
   {
     id: "actions",

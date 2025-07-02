@@ -18,6 +18,7 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { format } from "date-fns";
 
 interface AiSummaryDialogProps {
   consultation: Consultation;
@@ -99,7 +100,7 @@ export function AiSummaryDialog({
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                     <p><strong>Patient:</strong> {patient.name}</p>
-                    <p><strong>Date:</strong> {new Date(consultation.date).toLocaleDateString()} at {consultation.time}</p>
+                    <p><strong>Date:</strong> {format(new Date(consultation.date), "MM/dd/yyyy")} at {consultation.time}</p>
                     <p><strong>Reason:</strong> {consultation.reason}</p>
                     <Separator className="my-2"/>
                     <p><strong>Treatment Plan:</strong> {consultation.treatmentPlan}</p>
