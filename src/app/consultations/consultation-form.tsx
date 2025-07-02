@@ -181,6 +181,40 @@ export function ConsultationForm({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="treatmentPlan"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Treatment Plan</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Details of the treatment plan..."
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="followUpActions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Follow-up Actions</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="E.g., schedule next appointment, prescription details..."
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-2 gap-4">
                 <FormField
                 control={form.control}
