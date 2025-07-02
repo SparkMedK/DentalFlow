@@ -76,7 +76,7 @@ export function PatientForm({
     if (patient) {
       updatePatient({ ...patient, ...values });
     } else {
-      addPatient({ ...values, id: "" }); // ID will be generated in context
+      addPatient(values);
     }
     onOpenChange(false);
     form.reset();

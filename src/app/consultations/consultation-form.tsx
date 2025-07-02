@@ -96,7 +96,7 @@ export function ConsultationForm({
     if (consultation) {
       updateConsultation({ ...consultation, ...finalValues });
     } else {
-      addConsultation({ ...finalValues, id: "" }); // ID will be generated in context
+      addConsultation(finalValues); 
     }
     onOpenChange(false);
     form.reset();

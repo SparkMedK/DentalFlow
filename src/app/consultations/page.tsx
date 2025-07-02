@@ -2,15 +2,23 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useAppContext } from "@/context/app-context";
 import { ConsultationForm } from "./consultation-form";
 
 export default function ConsultationsPage() {
-  const { consultations } = useAppContext();
+  const { consultations, isLoading } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full flex-1 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">

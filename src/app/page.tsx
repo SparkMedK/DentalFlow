@@ -1,11 +1,19 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, Clock } from "lucide-react";
+import { Calendar, Users, Clock, Loader2 } from "lucide-react";
 import { useAppContext } from "@/context/app-context";
 
 export default function DashboardPage() {
-  const { patients, consultations } = useAppContext();
+  const { patients, consultations, isLoading } = useAppContext();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full flex-1 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   const totalPatients = patients.length;
   const totalAppointments = consultations.length;
