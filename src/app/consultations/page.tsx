@@ -1,0 +1,30 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { columns } from "./columns";
+import { DataTable } from "./data-table";
+import { useAppContext } from "@/context/app-context";
+import { ConsultationForm } from "./consultation-form";
+
+export default function ConsultationsPage() {
+  const { consultations } = useAppContext();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  return (
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Consultations</h2>
+        <div className="flex items-center space-x-2">
+          <ConsultationForm open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Consultation
+            </Button>
+          </ConsultationForm>
+        </div>
+      </div>
+      <DataTable data={consultations} columns={columns} />
+    </div>
+  );
+}
