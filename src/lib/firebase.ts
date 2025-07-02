@@ -1,5 +1,6 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, type Auth, type User } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,11 +11,17 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
+let app: FirebaseApp;
+let auth: Auth | null = null;
 let db: Firestore | null = null;
+let googleProvider: GoogleAuthProvider | null = null;
 
 if (firebaseConfig.projectId) {
-  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  auth = getAuth(app);
   db = getFirestore(app);
+  googleProvider = new GoogleAuthProvider();
 }
 
-export { db };
+export { db, auth, googleProvider, signInWithPopup, onAuthStateChanged, signOut };
+export type { User };

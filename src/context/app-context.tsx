@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Patient, Consultation } from '@/lib/types';
-import { useToast } from "@/hooks/use-toast"
-import { db } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
+import { db, auth, onAuthStateChanged, signOut, User } from "@/lib/firebase";
 import { 
   collection, 
   getDocs, 
@@ -15,8 +15,12 @@ import {
   query, 
   where 
 } from "firebase/firestore";
+import { useRouter } from 'next/navigation';
 
 interface AppContextType {
+  user: User | null;
+  authLoading: boolean;
+  signOutUser: () => void;
   patients: Patient[];
   consultations: Consultation[];
   isLoading: boolean;
@@ -32,24 +36,37 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
-    if (!db) {
-      toast({
-        variant: "destructive",
-        title: "Firebase Not Configured",
-        description: "Please set up your Firebase credentials in .env.",
-      });
-      setIsLoading(false);
+    if (!auth) {
+        setAuthLoading(false);
+        setDataLoading(false);
+        return;
+    }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user || !db) {
+      if (!authLoading) setDataLoading(false);
+      setPatients([]);
+      setConsultations([]);
       return;
     }
 
     const fetchData = async () => {
-      setIsLoading(true);
+      setDataLoading(true);
       try {
         const patientsCollection = collection(db, 'patients');
         const patientsSnapshot = await getDocs(patientsCollection);
@@ -66,18 +83,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         toast({
           variant: "destructive",
           title: "Error Fetching Data",
-          description: "Could not load data from Firestore. Using local data.",
+          description: "Could not load data from Firestore.",
         });
       } finally {
-        setIsLoading(false);
+        setDataLoading(false);
       }
     };
 
     fetchData();
-  }, [toast]);
+  }, [user, toast, authLoading]);
+  
+  const signOutUser = async () => {
+    if (!auth) return;
+    try {
+        await signOut(auth);
+        router.push('/login');
+    } catch(error) {
+        console.error("Error signing out: ", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not sign out. Please try again.",
+        });
+    }
+  }
 
   const addPatient = async (patient: Omit<Patient, 'id'>) => {
-    if (!db) return;
+    if (!db || !user) return;
     try {
       const docRef = await addDoc(collection(db, "patients"), patient);
       setPatients(prev => [...prev, { ...patient, id: docRef.id }]);
@@ -89,7 +121,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updatePatient = async (updatedPatient: Patient) => {
-    if (!db) return;
+    if (!db || !user) return;
     const { id, ...patientData } = updatedPatient;
     const patientDoc = doc(db, "patients", id);
     try {
@@ -103,7 +135,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deletePatient = async (patientId: string) => {
-    if (!db) return;
+    if (!db || !user) return;
     try {
       const batch = writeBatch(db);
       const patientDoc = doc(db, "patients", patientId);
@@ -125,7 +157,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addConsultation = async (consultation: Omit<Consultation, 'id'>) => {
-    if (!db) return;
+    if (!db || !user) return;
     try {
       const docRef = await addDoc(collection(db, "consultations"), consultation);
       setConsultations(prev => [...prev, { ...consultation, id: docRef.id }]);
@@ -137,7 +169,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateConsultation = async (updatedConsultation: Consultation) => {
-    if (!db) return;
+    if (!db || !user) return;
     const { id, ...consultationData } = updatedConsultation;
     const consultationDoc = doc(db, "consultations", id);
     try {
@@ -151,7 +183,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteConsultation = async (consultationId: string) => {
-    if (!db) return;
+    if (!db || !user) return;
     const consultationDoc = doc(db, "consultations", consultationId);
     try {
       await deleteDoc(consultationDoc);
@@ -169,9 +201,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AppContext.Provider value={{ 
+      user,
+      authLoading,
+      signOutUser,
       patients, 
       consultations, 
-      isLoading,
+      isLoading: authLoading || dataLoading,
       addPatient, 
       updatePatient, 
       deletePatient,

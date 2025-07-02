@@ -4,7 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { AppProvider } from "@/context/app-context";
 import { Toaster } from "@/components/ui/toaster";
-import { Sidebar } from "@/components/layout/sidebar";
+import { ProtectedLayout } from "@/components/protected-layout";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -27,12 +27,9 @@ export default function RootLayout({
         )}
       >
         <AppProvider>
-          <div className="flex min-h-screen w-full">
-            <Sidebar />
-            <main className="flex flex-1 flex-col sm:py-4 sm:pl-14">
-              {children}
-            </main>
-          </div>
+          <ProtectedLayout>
+            {children}
+          </ProtectedLayout>
           <Toaster />
         </AppProvider>
       </body>
