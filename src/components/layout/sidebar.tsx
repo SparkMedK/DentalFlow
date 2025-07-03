@@ -12,16 +12,12 @@ import {
   Home,
   Users,
   Stethoscope,
-  LogOut,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
-import { useAppContext } from "@/context/app-context";
-import { Button } from "../ui/button";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { signOutUser } = useAppContext();
 
   const navItems = [
     { href: "/", icon: Home, label: "Dashboard" },
@@ -59,22 +55,6 @@ export function Sidebar() {
               <TooltipContent side="right">{item.label}</TooltipContent>
             </Tooltip>
           ))}
-        </nav>
-        <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 md:h-8 md:w-8 text-muted-foreground hover:text-foreground"
-                        onClick={signOutUser}
-                    >
-                        <LogOut className="h-5 w-5" />
-                        <span className="sr-only">Sign Out</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">Sign Out</TooltipContent>
-            </Tooltip>
         </nav>
       </TooltipProvider>
     </aside>

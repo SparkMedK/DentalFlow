@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAppContext } from '@/context/app-context';
 import { Loader2 } from 'lucide-react';
 import { Sidebar } from "@/components/layout/sidebar";
+import { UserNav } from '@/components/layout/user-nav';
 
 export function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { user, authLoading } = useAppContext();
@@ -38,9 +39,12 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full">
       <Sidebar />
-      <main className="flex flex-1 flex-col sm:py-4 sm:pl-14">
+      <div className="flex flex-1 flex-col sm:pl-14">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-end gap-4 border-b bg-background px-4 sm:px-8">
+            <UserNav />
+        </header>
         {children}
-      </main>
+      </div>
     </div>
   );
 }
