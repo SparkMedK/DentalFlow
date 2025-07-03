@@ -1,12 +1,26 @@
+
 "use client";
 
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Users, Clock, Loader2, DollarSign, CalendarDays, CalendarClock } from "lucide-react";
+import { Users, Clock, Loader2, DollarSign, CalendarDays, Calendar as CalendarIcon } from "lucide-react";
 import { useAppContext } from "@/context/app-context";
-import { isToday, isThisMonth, isThisYear } from "date-fns";
+import { format, isToday, isSameMonth, isSameYear } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function DashboardPage() {
   const { patients, consultations, isLoading } = useAppContext();
+  const [month, setMonth] = React.useState<Date>(new Date());
+  const [year, setYear] = React.useState<Date>(new Date());
+  const [monthPopoverOpen, setMonthPopoverOpen] = React.useState(false);
+  const [yearPopoverOpen, setYearPopoverOpen] = React.useState(false);
+
 
   if (isLoading) {
     return (
@@ -34,11 +48,11 @@ export default function DashboardPage() {
     .reduce((acc, c) => acc + c.price, 0);
 
   const revenueThisMonth = completedConsultations
-    .filter(c => isThisMonth(new Date(c.date)))
+    .filter(c => isSameMonth(new Date(c.date), month))
     .reduce((acc, c) => acc + c.price, 0);
 
   const revenueThisYear = completedConsultations
-    .filter(c => isThisYear(new Date(c.date)))
+    .filter(c => isSameYear(new Date(c.date), year))
     .reduce((acc, c) => acc + c.price, 0);
   
   const allTimeRevenue = completedConsultations
@@ -70,7 +84,7 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">
               Total Appointments
             </CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalAppointments}</div>
@@ -111,32 +125,74 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                    This Month's Revenue
-                    </CardTitle>
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{formatCurrency(revenueThisMonth)}</div>
-                    <p className="text-xs text-muted-foreground">
-                    From completed consultations this month
-                    </p>
-                </CardContent>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Revenue for {format(month, 'MMMM yyyy')}
+                </CardTitle>
+                <Popover open={monthPopoverOpen} onOpenChange={setMonthPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                      <span className="sr-only">Open calendar</span>
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={month}
+                      onSelect={(date) => {
+                        if (date) setMonth(date);
+                        setMonthPopoverOpen(false);
+                      }}
+                      captionLayout="dropdown-buttons"
+                      fromYear={2020}
+                      toYear={new Date().getFullYear() + 5}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(revenueThisMonth)}</div>
+                <p className="text-xs text-muted-foreground">
+                  Revenue from selected month
+                </p>
+              </CardContent>
             </Card>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                    This Year's Revenue
-                    </CardTitle>
-                    <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{formatCurrency(revenueThisYear)}</div>
-                    <p className="text-xs text-muted-foreground">
-                    From completed consultations this year
-                    </p>
-                </CardContent>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Revenue for {format(year, 'yyyy')}
+                </CardTitle>
+                <Popover open={yearPopoverOpen} onOpenChange={setYearPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                      <span className="sr-only">Open calendar</span>
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={year}
+                      onSelect={(date) => {
+                        if (date) setYear(date);
+                        setYearPopoverOpen(false);
+                      }}
+                      captionLayout="dropdown-buttons"
+                      fromYear={2020}
+                      toYear={new Date().getFullYear() + 5}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(revenueThisYear)}</div>
+                <p className="text-xs text-muted-foreground">
+                  Revenue from selected year
+                </p>
+              </CardContent>
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
