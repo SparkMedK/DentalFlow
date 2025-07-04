@@ -32,6 +32,7 @@ import * as z from "zod";
 import { Consultation } from "@/lib/types";
 import { useAppContext } from "@/context/app-context";
 import React from "react";
+import { Combobox } from "@/components/ui/combobox";
 
 const consultationSchema = z.object({
   patientId: z.string().min(1, "Patient is required."),
@@ -101,6 +102,12 @@ export function ConsultationForm({
     onOpenChange(false);
     form.reset();
   };
+  
+  const patientOptions = patients.map(p => ({
+    value: p.id,
+    label: `${p.name} - ${p.phone}`,
+  }));
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,22 +127,16 @@ export function ConsultationForm({
               control={form.control}
               name="patientId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Patient</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a patient" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {patients.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Combobox
+                        options={patientOptions}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select a patient..."
+                        searchPlaceholder="Search by name or phone..."
+                        emptyPlaceholder="No patient found."
+                    />
                   <FormMessage />
                 </FormItem>
               )}
