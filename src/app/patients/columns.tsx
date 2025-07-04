@@ -2,15 +2,8 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Patient } from "@/lib/types";
-import { MoreHorizontal, ArrowUpDown } from "lucide-react";
+import { MoreHorizontal, ArrowUpDown, Pencil, Trash2, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { PatientForm } from "./patient-form";
 import { useState } from "react";
 import { useAppContext } from "@/context/app-context";
@@ -24,38 +17,73 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { format } from "date-fns";
+import { ConsultationForm } from "../consultations/consultation-form";
 
 const ActionsCell = ({ patient }: { patient: Patient }) => {
   const { deletePatient } = useAppContext();
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
+  const [isConsultationFormOpen, setIsConsultationFormOpen] = useState(false);
+
+  const newConsultation = {
+      patientId: patient.id,
+  };
 
   return (
-    <>
+    <TooltipProvider>
       <PatientForm
         patient={patient}
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
+        open={isPatientFormOpen}
+        onOpenChange={setIsPatientFormOpen}
+      />
+       <ConsultationForm
+        consultation={newConsultation}
+        open={isConsultationFormOpen}
+        onOpenChange={setIsConsultationFormOpen}
       />
       <AlertDialog>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => setIsFormOpen(true)}>
-              Edit
-            </DropdownMenuItem>
+        <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setIsPatientFormOpen(true)}>
+                <Pencil className="h-4 w-4" />
+                <span className="sr-only">Edit Patient</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Edit Patient</p>
+            </TooltipContent>
+          </Tooltip>
+           <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setIsConsultationFormOpen(true)}>
+                <Stethoscope className="h-4 w-4" />
+                <span className="sr-only">Add Consultation</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add Consultation</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
             <AlertDialogTrigger asChild>
-              <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
+                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete Patient</span>
+                </Button>
             </AlertDialogTrigger>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <TooltipContent>
+              <p>Delete Patient</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
 
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -70,7 +98,7 @@ const ActionsCell = ({ patient }: { patient: Patient }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </TooltipProvider>
   );
 };
 

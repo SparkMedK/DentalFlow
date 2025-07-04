@@ -2,16 +2,8 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Consultation } from "@/lib/types";
-import { MoreHorizontal, ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Pencil, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/context/app-context";
 import { useState } from "react";
@@ -29,6 +21,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { format } from "date-fns";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
   const { deleteConsultation } = useAppContext();
@@ -36,7 +35,7 @@ const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
 
   return (
-    <>
+    <TooltipProvider>
       <ConsultationForm
         consultation={consultation}
         open={isFormOpen}
@@ -48,27 +47,43 @@ const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
         onOpenChange={setIsSummaryOpen}
       />
       <AlertDialog>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => setIsSummaryOpen(true)}>
-              AI Summary
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setIsFormOpen(true)}>
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <AlertDialogTrigger asChild>
-                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10">Delete</DropdownMenuItem>
-            </AlertDialogTrigger>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1">
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => setIsSummaryOpen(true)}>
+                        <Sparkles className="h-4 w-4" />
+                        <span className="sr-only">AI Summary</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>AI Summary</p>
+                </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => setIsFormOpen(true)}>
+                        <Pencil className="h-4 w-4" />
+                        <span className="sr-only">Edit Consultation</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>Edit Consultation</p>
+                </TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+                <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete Consultation</span>
+                    </Button>
+                </AlertDialogTrigger>
+                <TooltipContent>
+                    <p>Delete Consultation</p>
+                </TooltipContent>
+            </Tooltip>
+        </div>
 
         <AlertDialogContent>
             <AlertDialogHeader>
@@ -83,7 +98,7 @@ const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </TooltipProvider>
   );
 };
 

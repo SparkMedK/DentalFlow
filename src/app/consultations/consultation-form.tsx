@@ -46,7 +46,7 @@ const consultationSchema = z.object({
 });
 
 interface ConsultationFormProps {
-  consultation?: Consultation;
+  consultation?: Partial<Consultation>;
   children?: React.ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -84,7 +84,7 @@ export function ConsultationForm({
       treatmentPlan: "",
       followUpActions: "",
     });
-  }, [consultation, form]);
+  }, [consultation, form, open]);
 
 
   const onSubmit = (values: z.infer<typeof consultationSchema>) => {
@@ -94,8 +94,8 @@ export function ConsultationForm({
         followUpActions: values.followUpActions || 'Not specified',
     };
 
-    if (consultation) {
-      updateConsultation({ ...consultation, ...finalValues });
+    if (consultation?.id) {
+      updateConsultation({ ...consultation, ...finalValues, id: consultation.id });
     } else {
       addConsultation(finalValues); 
     }
@@ -114,9 +114,9 @@ export function ConsultationForm({
       {children && <div onClick={() => onOpenChange(true)}>{children}</div>}
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{consultation ? "Edit Consultation" : "Add Consultation"}</DialogTitle>
+          <DialogTitle>{consultation?.id ? "Edit Consultation" : "Add Consultation"}</DialogTitle>
           <DialogDescription>
-            {consultation
+            {consultation?.id
               ? "Update the consultation details."
               : "Schedule a new consultation."}
           </DialogDescription>
@@ -136,6 +136,7 @@ export function ConsultationForm({
                         placeholder="Select a patient..."
                         searchPlaceholder="Search by name or phone..."
                         emptyPlaceholder="No patient found."
+                        disabled={!!consultation?.patientId}
                     />
                   <FormMessage />
                 </FormItem>

@@ -28,8 +28,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useAppContext } from "@/context/app-context";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -40,7 +38,6 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const { patients } = useAppContext();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
@@ -58,13 +55,6 @@ export function DataTable<TData, TValue>({
       columnFilters,
     },
   });
-
-  const patientNames = React.useMemo(() => {
-    const patientMap = new Map(patients.map(p => [p.id, p.name]));
-    const uniqueNames = new Set(data.map((d: any) => patientMap.get(d.patientId)).filter(Boolean));
-    return Array.from(uniqueNames);
-  }, [data, patients]);
-
 
   return (
     <div>
