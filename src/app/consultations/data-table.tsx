@@ -30,6 +30,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppContext } from "@/context/app-context";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -42,10 +50,37 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const { patients } = useAppContext();
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] =
+    React.useState<ColumnFiltersState>([]);
+  const [birthdayFilter, setBirthdayFilter] = React.useState<Date>();
+
+  const filteredData = React.useMemo(() => {
+    if (!birthdayFilter) {
+      return data;
+    }
+
+    const filterMonth = birthdayFilter.getMonth();
+    const filterDay = birthdayFilter.getDate();
+
+    const patientIdsWithBirthday = patients
+      .filter((p) => {
+        if (!p.dob || !/^\d{4}-\d{2}-\d{2}$/.test(p.dob)) return false;
+
+        const [, month, day] = p.dob.split("-").map((s) => parseInt(s, 10));
+        const patientMonth = month - 1;
+        const patientDay = day;
+
+        return patientMonth === filterMonth && patientDay === filterDay;
+      })
+      .map((p) => p.id);
+
+    return data.filter((consultation: any) =>
+      patientIdsWithBirthday.includes(consultation.patientId)
+    );
+  }, [data, patients, birthdayFilter]);
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -59,16 +94,9 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  const patientNames = React.useMemo(() => {
-    const patientMap = new Map(patients.map(p => [p.id, p.name]));
-    const uniqueNames = new Set(data.map((d: any) => patientMap.get(d.patientId)).filter(Boolean));
-    return Array.from(uniqueNames);
-  }, [data, patients]);
-
-
   return (
     <div>
-      <div className="flex items-center py-4 gap-4">
+      <div className="flex flex-wrap items-center py-4 gap-4">
         <Input
           placeholder="Filter by reason..."
           value={(table.getColumn("reason")?.getFilterValue() as string) ?? ""}
@@ -79,7 +107,9 @@ export function DataTable<TData, TValue>({
         />
         <Select
           value={(table.getColumn("status")?.getFilterValue() as string) ?? ""}
-          onValueChange={(value) => table.getColumn("status")?.setFilterValue(value === "all" ? "" : value)}
+          onValueChange={(value) =>
+            table.getColumn("status")?.setFilterValue(value === "all" ? "" : value)
+          }
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by status" />
@@ -91,6 +121,37 @@ export function DataTable<TData, TValue>({
             <SelectItem value="Cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className="w-[240px] justify-start text-left font-normal"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {birthdayFilter ? (
+                format(birthdayFilter, "MMMM d")
+              ) : (
+                <span>Filter by birthday</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={birthdayFilter}
+              onSelect={setBirthdayFilter}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        {birthdayFilter && (
+          <Button
+            variant="ghost"
+            onClick={() => setBirthdayFilter(undefined)}
+          >
+            Clear Filter
+          </Button>
+        )}
       </div>
       <div className="rounded-md border">
         <Table>
