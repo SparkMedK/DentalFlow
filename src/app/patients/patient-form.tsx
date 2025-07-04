@@ -28,11 +28,10 @@ import React from "react";
 
 const patientSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
-  email: z.string().email("Invalid email address."),
-  phone: z.string().min(10, "Phone number is required."),
+  phone: z.string().regex(/^\d{8}$/, "Phone number must be exactly 8 digits."),
   dob: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid date."),
+  address: z.string().min(1, "Address is required."),
   patientHistory: z.string().min(1, "Patient history is required."),
-  dentalChart: z.string().min(1, "Dental chart information is required."),
 });
 
 interface PatientFormProps {
@@ -53,22 +52,20 @@ export function PatientForm({
     resolver: zodResolver(patientSchema),
     defaultValues: patient || {
       name: "",
-      email: "",
       phone: "",
       dob: "",
+      address: "",
       patientHistory: "",
-      dentalChart: "",
     },
   });
 
   React.useEffect(() => {
     form.reset(patient || {
       name: "",
-      email: "",
       phone: "",
       dob: "",
+      address: "",
       patientHistory: "",
-      dentalChart: "",
     });
   }, [patient, form]);
 
@@ -111,25 +108,12 @@ export function PatientForm({
             />
             <FormField
               control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder="john@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="phone"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="123-456-7890" {...field} />
+                    <Input placeholder="12345678" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,25 +134,25 @@ export function PatientForm({
             />
              <FormField
               control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="123 Main St, Anytown, USA" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
               name="patientHistory"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Patient History</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Allergies, past surgeries, etc." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="dentalChart"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dental Chart Notes</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Missing teeth, crowns, etc." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

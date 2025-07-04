@@ -56,7 +56,6 @@ export function AiSummaryDialog({
         treatmentPlan: consultation.treatmentPlan,
         followUpActions: consultation.followUpActions,
         patientHistory: patient.patientHistory,
-        dentalChart: patient.dentalChart,
     };
 
     const result = await getConsultationSummary(input);

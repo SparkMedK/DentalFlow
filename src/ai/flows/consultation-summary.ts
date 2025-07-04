@@ -18,7 +18,6 @@ const ConsultationSummaryInputSchema = z.object({
   treatmentPlan: z.string().describe('The planned treatment for the patient.'),
   followUpActions: z.string().describe('Any follow-up actions required for the patient.'),
   patientHistory: z.string().describe('The patient medical history.'),
-  dentalChart: z.string().describe('The current dental chart of the patient.'),
 });
 
 export type ConsultationSummaryInput = z.infer<typeof ConsultationSummaryInputSchema>;
@@ -49,7 +48,6 @@ const consultationSummaryPrompt = ai.definePrompt({
   Treatment Plan: {{{treatmentPlan}}}
   Follow-Up Actions: {{{followUpActions}}}
   Patient Medical History: {{{patientHistory}}}
-  Dental Chart: {{{dentalChart}}}
 
   Summary:`, // Removed explicit instruction for output format; relying on schema description.
 });

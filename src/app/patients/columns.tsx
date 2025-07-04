@@ -90,10 +90,6 @@ export const columns: ColumnDef<Patient>[] = [
     },
   },
   {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
     accessorKey: "phone",
     header: "Phone",
   },
@@ -101,6 +97,10 @@ export const columns: ColumnDef<Patient>[] = [
     accessorKey: "dob",
     header: "Date of Birth",
     cell: ({ row }) => format(new Date(row.original.dob), "MM/dd/yyyy"),
+  },
+  {
+    accessorKey: "address",
+    header: "Address",
   },
   {
     id: "actions",
