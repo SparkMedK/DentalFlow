@@ -103,10 +103,10 @@ export function ConsultationForm({
     form.reset();
   };
   
-  const patientOptions = patients.map(p => ({
+  const patientOptions = React.useMemo(() => patients.map(p => ({
     value: p.id,
     label: `${p.name} - ${p.phone}`,
-  }));
+  })), [patients]);
 
 
   return (
@@ -136,7 +136,7 @@ export function ConsultationForm({
                         placeholder="Select a patient..."
                         searchPlaceholder="Search by name or phone..."
                         emptyPlaceholder="No patient found."
-                        disabled={!!consultation?.patientId}
+                        disabled={!!consultation?.id}
                     />
                   <FormMessage />
                 </FormItem>
