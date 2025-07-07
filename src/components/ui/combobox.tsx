@@ -70,12 +70,9 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label}
-                  onSelect={(currentLabel) => {
-                    const selectedOption = options.find(opt => opt.label === currentLabel);
-                    if (selectedOption) {
-                      onChange(selectedOption.value === value ? "" : selectedOption.value)
-                    }
+                  value={option.value}
+                  onSelect={(currentValue) => {
+                    onChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
                 >
@@ -86,7 +83,7 @@ export function Combobox({
                     )}
                   />
                   {option.label}
-                </dCommandItem>
+                </CommandItem>
               ))}
             </CommandGroup>
           </CommandList>
