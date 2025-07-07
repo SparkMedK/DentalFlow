@@ -135,8 +135,6 @@ export function ConsultationForm({
                         onChange={field.onChange}
                         placeholder="Select a patient..."
                         searchPlaceholder="Search by name or phone..."
-                        emptyPlaceholder="No patient found."
-                        disabled={!!consultation?.patientId}
                     />
                   <FormMessage />
                 </FormItem>

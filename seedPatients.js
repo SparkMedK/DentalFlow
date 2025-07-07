@@ -15,14 +15,19 @@ async function seedPatients() {
   for (let i = 1; i <= 100; i++) {
     const docRef = patientsCollection.doc(); // auto-ID
     const fakePhone = `5${Math.floor(1000000 + Math.random() * 8999999)}`; // 8-digit phone
-    const fakeBirth = new Date(1990 + Math.floor(Math.random() * 20), Math.floor(Math.random() * 12), Math.floor(Math.random() * 28));
-
+    const randomDate = () => {
+      const year = 1985 + Math.floor(Math.random() * 20); // 1985–2004
+      const month = String(1 + Math.floor(Math.random() * 12)).padStart(2, '0');
+      const day = String(1 + Math.floor(Math.random() * 28)).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
     batch.set(docRef, {
-      fullName: `Test Patient ${i}`,
+      name: `Patient No ${i}`,
       phone: fakePhone,
       address: `Sample Address ${i}`,
-      birthday: fakeBirth,
-      createdAt: new Date(),
+      dob: randomDate(),
+      patientHistory: `${Math.floor(Math.random() * 90 + 10)}`, // random 2-digit string
+      createdAt: new Date(),      
     });
   }
 
