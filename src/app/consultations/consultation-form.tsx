@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
+  Select as ShadSelect,
   SelectContent,
   SelectItem,
   SelectTrigger,
@@ -32,7 +32,7 @@ import * as z from "zod";
 import { Consultation } from "@/lib/types";
 import { useAppContext } from "@/context/app-context";
 import React from "react";
-import { Combobox } from "@/components/ui/combobox";
+import Select from "react-select";
 
 const consultationSchema = z.object({
   patientId: z.string().min(1, "Patient is required."),
@@ -108,6 +108,47 @@ export function ConsultationForm({
     label: `${p.name} - ${p.phone}`,
   })), [patients]);
 
+  const isEditing = !!consultation?.id;
+
+  const selectStyles = {
+    control: (base: any, state: any) => ({
+      ...base,
+      backgroundColor: 'hsl(var(--input))',
+      borderColor: state.isFocused ? 'hsl(var(--ring))' : 'hsl(var(--border))',
+      color: 'hsl(var(--foreground))',
+      minHeight: '40px',
+      boxShadow: 'none',
+      '&:hover': {
+        borderColor: 'hsl(var(--ring))',
+      }
+    }),
+    singleValue: (base: any) => ({
+      ...base,
+      color: 'hsl(var(--foreground))',
+    }),
+    input: (base: any) => ({
+      ...base,
+      color: 'hsl(var(--foreground))',
+    }),
+    menu: (base: any) => ({
+      ...base,
+      backgroundColor: 'hsl(var(--popover))',
+      borderColor: 'hsl(var(--border))',
+      zIndex: 9999
+    }),
+    option: (base: any, state: { isFocused: any; isSelected: any; }) => ({
+      ...base,
+      backgroundColor: state.isSelected ? 'hsl(var(--accent))' : state.isFocused ? 'hsl(var(--muted))' : 'hsl(var(--popover))',
+      color: 'hsl(var(--popover-foreground))',
+      '&:active': {
+        backgroundColor: 'hsl(var(--accent))',
+      }
+    }),
+    placeholder: (base: any) => ({
+      ...base,
+      color: 'hsl(var(--muted-foreground))',
+    }),
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,14 +170,14 @@ export function ConsultationForm({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Patient</FormLabel>
-                    <Combobox
-                        options={patientOptions}
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Select a patient..."
-                        searchPlaceholder="Search by name or phone..."
-                        emptyPlaceholder="No patient found."
-                        disabled={!!consultation?.id}
+                    <Select
+                      instanceId="patient-select"
+                      options={patientOptions}
+                      value={patientOptions.find(option => option.value === field.value) || null}
+                      onChange={(option) => field.onChange(option?.value || "")}
+                      placeholder="Select or search for a patient..."
+                      styles={selectStyles}
+                      isDisabled={isEditing}
                     />
                   <FormMessage />
                 </FormItem>
@@ -237,7 +278,7 @@ export function ConsultationForm({
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <ShadSelect onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Select status" />
@@ -248,7 +289,7 @@ export function ConsultationForm({
                         <SelectItem value="Completed">Completed</SelectItem>
                         <SelectItem value="Cancelled">Cancelled</SelectItem>
                         </SelectContent>
-                    </Select>
+                    </ShadSelect>
                     <FormMessage />
                     </FormItem>
                 )}
