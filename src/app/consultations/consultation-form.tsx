@@ -59,32 +59,29 @@ export function ConsultationForm({
   onOpenChange,
 }: ConsultationFormProps) {
   const { patients, addConsultation, updateConsultation } = useAppContext();
+
+  const getInitialValues = (c?: Partial<Consultation>) => ({
+    patientId: "",
+    date: new Date().toISOString().split('T')[0],
+    time: "10:00",
+    reason: "",
+    price: 0,
+    status: "Scheduled" as const,
+    treatmentPlan: "",
+    followUpActions: "",
+    ...(c || {}),
+  });
+
   const form = useForm<z.infer<typeof consultationSchema>>({
     resolver: zodResolver(consultationSchema),
-    defaultValues: consultation || {
-      patientId: "",
-      date: new Date().toISOString().split('T')[0],
-      time: "10:00",
-      reason: "",
-      price: 0,
-      status: "Scheduled",
-      treatmentPlan: "",
-      followUpActions: "",
-    },
+    defaultValues: getInitialValues(consultation),
   });
   
   React.useEffect(() => {
-    form.reset(consultation || {
-      patientId: "",
-      date: new Date().toISOString().split('T')[0],
-      time: "10:00",
-      reason: "",
-      price: 0,
-      status: "Scheduled",
-      treatmentPlan: "",
-      followUpActions: "",
-    });
-  }, [consultation, form, open]);
+    if (open) {
+      form.reset(getInitialValues(consultation));
+    }
+  }, [consultation, open, form]);
 
 
   const onSubmit = (values: z.infer<typeof consultationSchema>) => {
@@ -100,7 +97,6 @@ export function ConsultationForm({
       addConsultation(finalValues); 
     }
     onOpenChange(false);
-    form.reset();
   };
   
   const patientOptions = patients.map(p => ({
