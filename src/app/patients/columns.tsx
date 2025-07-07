@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Patient } from "@/lib/types";
-import { MoreHorizontal, ArrowUpDown, Pencil, Trash2, Stethoscope } from "lucide-react";
+import { ArrowUpDown, Pencil, Trash2, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PatientForm } from "./patient-form";
 import { useState } from "react";

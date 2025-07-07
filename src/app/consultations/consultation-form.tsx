@@ -74,7 +74,7 @@ export function ConsultationForm({
   });
   
   React.useEffect(() => {
-    form.reset(consultation || {
+    const defaultValues = {
       patientId: "",
       date: new Date().toISOString().split('T')[0],
       time: "10:00",
@@ -83,7 +83,8 @@ export function ConsultationForm({
       status: "Scheduled",
       treatmentPlan: "",
       followUpActions: "",
-    });
+    };
+    form.reset(consultation ? { ...defaultValues, ...consultation } : defaultValues);
   }, [consultation, form, open]);
 
 
@@ -100,7 +101,6 @@ export function ConsultationForm({
       addConsultation(finalValues); 
     }
     onOpenChange(false);
-    form.reset();
   };
   
   const patientOptions = React.useMemo(() => patients.map(p => ({
@@ -177,7 +177,7 @@ export function ConsultationForm({
                       onChange={(option) => field.onChange(option?.value || "")}
                       placeholder="Select or search for a patient..."
                       styles={selectStyles}
-                      isDisabled={isEditing}
+                      isDisabled={isEditing || (!!consultation?.patientId && !consultation?.id)}
                     />
                   <FormMessage />
                 </FormItem>
