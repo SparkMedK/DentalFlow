@@ -71,8 +71,11 @@ export function Combobox({
                 <CommandItem
                   key={option.value}
                   value={option.label}
-                  onSelect={() => {
-                    onChange(option.value === value ? "" : option.value)
+                  onSelect={(currentLabel) => {
+                    const selectedOption = options.find(opt => opt.label === currentLabel);
+                    if (selectedOption) {
+                      onChange(selectedOption.value === value ? "" : selectedOption.value)
+                    }
                     setOpen(false)
                   }}
                 >
@@ -83,7 +86,7 @@ export function Combobox({
                     )}
                   />
                   {option.label}
-                </CommandItem>
+                </dCommandItem>
               ))}
             </CommandGroup>
           </CommandList>

@@ -59,29 +59,32 @@ export function ConsultationForm({
   onOpenChange,
 }: ConsultationFormProps) {
   const { patients, addConsultation, updateConsultation } = useAppContext();
-
-  const getInitialValues = (c?: Partial<Consultation>) => ({
-    patientId: "",
-    date: new Date().toISOString().split('T')[0],
-    time: "10:00",
-    reason: "",
-    price: 0,
-    status: "Scheduled" as const,
-    treatmentPlan: "",
-    followUpActions: "",
-    ...(c || {}),
-  });
-
   const form = useForm<z.infer<typeof consultationSchema>>({
     resolver: zodResolver(consultationSchema),
-    defaultValues: getInitialValues(consultation),
+    defaultValues: consultation || {
+      patientId: "",
+      date: new Date().toISOString().split('T')[0],
+      time: "10:00",
+      reason: "",
+      price: 0,
+      status: "Scheduled",
+      treatmentPlan: "",
+      followUpActions: "",
+    },
   });
   
   React.useEffect(() => {
-    if (open) {
-      form.reset(getInitialValues(consultation));
-    }
-  }, [consultation, open, form]);
+    form.reset(consultation || {
+      patientId: "",
+      date: new Date().toISOString().split('T')[0],
+      time: "10:00",
+      reason: "",
+      price: 0,
+      status: "Scheduled",
+      treatmentPlan: "",
+      followUpActions: "",
+    });
+  }, [consultation, form, open]);
 
 
   const onSubmit = (values: z.infer<typeof consultationSchema>) => {
@@ -97,6 +100,7 @@ export function ConsultationForm({
       addConsultation(finalValues); 
     }
     onOpenChange(false);
+    form.reset();
   };
   
   const patientOptions = patients.map(p => ({
@@ -131,7 +135,8 @@ export function ConsultationForm({
                         onChange={field.onChange}
                         placeholder="Select a patient..."
                         searchPlaceholder="Search by name or phone..."
-                        disabled={!!consultation?.id}
+                        emptyPlaceholder="No patient found."
+                        disabled={!!consultation?.patientId}
                     />
                   <FormMessage />
                 </FormItem>
