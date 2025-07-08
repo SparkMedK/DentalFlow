@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Consultation } from "@/lib/types";
+import { Consultation, Patient } from "@/lib/types";
 import { Pencil, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,9 +27,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { ConsultationWithPatient } from "./page";
 
 
-const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
+const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }) => {
   const { deleteConsultation } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
@@ -102,15 +103,13 @@ const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
   );
 };
 
-export const columns: ColumnDef<Consultation>[] = [
+export const columns: ColumnDef<ConsultationWithPatient>[] = [
   {
-    accessorKey: "patientId",
+    id: "patientInfo",
     header: "Patient",
-    cell: ({ row }) => {
-      const { getPatientById } = useAppContext();
-      const patient = getPatientById(row.original.patientId);
-      return patient ? patient.name : "Unknown";
-    },
+    cell: ({ row }) => row.original.patient?.name ?? "Unknown",
+    accessorFn: (row) =>
+      `${row.patient?.name} ${row.patient?.phone} ${row.patient?.dob}`,
   },
   {
     accessorKey: "date",

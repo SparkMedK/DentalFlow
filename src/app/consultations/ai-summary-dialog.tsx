@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Consultation } from "@/lib/types";
-import { useAppContext } from "@/context/app-context";
+import { Consultation, Patient } from "@/lib/types";
 import React, { useState } from "react";
 import { getConsultationSummary } from "@/lib/actions";
 import { Loader2 } from "lucide-react";
@@ -21,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 
 interface AiSummaryDialogProps {
-  consultation: Consultation;
+  consultation: Consultation & { patient?: Patient };
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -31,11 +30,10 @@ export function AiSummaryDialog({
   open,
   onOpenChange,
 }: AiSummaryDialogProps) {
-  const { getPatientById } = useAppContext();
   const { toast } = useToast();
   const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const patient = getPatientById(consultation.patientId);
+  const patient = consultation.patient;
 
   const handleGenerateSummary = async () => {
     if (!patient) {
