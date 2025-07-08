@@ -24,7 +24,7 @@ interface AppContextType {
   patients: Patient[];
   consultations: Consultation[];
   isLoading: boolean;
-  addPatient: (patient: Omit<Patient, 'id'>) => Promise<void>;
+  addPatient: (patient: Omit<Patient, 'id' | 'createdAt'>) => Promise<void>;
   updatePatient: (patient: Patient) => Promise<void>;
   deletePatient: (patientId: string) => Promise<void>;
   addConsultation: (consultation: Omit<Consultation, 'id'>) => Promise<void>;
@@ -70,7 +70,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         const patientsCollection = collection(db, 'patients');
         const patientsSnapshot = await getDocs(patientsCollection);
-        const patientsList = patientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Patient));
+        const patientsList = patientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate().toISOString() : new Date().toISOString() } as Patient));
         setPatients(patientsList);
 
         const consultationsCollection = collection(db, 'consultations');
@@ -108,11 +108,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  const addPatient = async (patient: Omit<Patient, 'id'>) => {
+  const addPatient = async (patient: Omit<Patient, 'id' | 'createdAt'>) => {
     if (!db || !user) return;
     try {
-      const docRef = await addDoc(collection(db, "patients"), patient);
-      setPatients(prev => [...prev, { ...patient, id: docRef.id }]);
+      const patientWithCreationDate = { ...patient, createdAt: new Date().toISOString() };
+      const docRef = await addDoc(collection(db, "patients"), patientWithCreationDate);
+      setPatients(prev => [...prev, { ...patientWithCreationDate, id: docRef.id }]);
       toast({ title: "Success", description: "Patient added successfully." });
     } catch (error) {
       console.error("Error adding patient:", error);

@@ -5,6 +5,7 @@ export interface Patient {
   dob: string;
   address: string;
   patientHistory: string;
+  createdAt: string;
 }
 
 export interface Consultation {

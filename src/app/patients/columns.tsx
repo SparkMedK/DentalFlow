@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Patient } from "@/lib/types";
-import { ArrowUpDown, Pencil, Trash2, Stethoscope } from "lucide-react";
+import { Pencil, Trash2, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PatientForm } from "./patient-form";
 import { useState } from "react";
@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { ConsultationForm } from "../consultations/consultation-form";
+
+export type PatientWithLastConsultation = Patient & { lastConsultationDate: string | null };
 
 const ActionsCell = ({ patient }: { patient: Patient }) => {
   const { deletePatient } = useAppContext();
@@ -102,24 +104,10 @@ const ActionsCell = ({ patient }: { patient: Patient }) => {
   );
 };
 
-export const columns: ColumnDef<Patient>[] = [
+export const columns: ColumnDef<PatientWithLastConsultation>[] = [
   {
     accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "phone",
-    header: "Phone",
+    header: "Name",
   },
   {
     accessorKey: "dob",
@@ -131,7 +119,18 @@ export const columns: ColumnDef<Patient>[] = [
     header: "Address",
   },
   {
+    accessorKey: "phone",
+    header: "Phone",
+  },
+  {
     id: "actions",
     cell: ({ row }) => <ActionsCell patient={row.original} />,
+  },
+  // Hidden columns for sorting purposes
+  {
+    accessorKey: "createdAt",
+  },
+  {
+    accessorKey: "lastConsultationDate",
   },
 ];

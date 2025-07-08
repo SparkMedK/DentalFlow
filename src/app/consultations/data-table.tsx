@@ -10,7 +10,6 @@ import {
   getSortedRowModel,
   getFilteredRowModel,
   SortingState,
-  ColumnFiltersState,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -38,8 +37,9 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "date", desc: true },
+  ]);
 
   const table = useReactTable({
     data,
@@ -48,29 +48,33 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
-      columnFilters,
     },
   });
+
+  const handleSortChange = (value: string) => {
+    if (!value) {
+      table.resetSorting();
+      return;
+    }
+    const [id, dir] = value.split("-");
+    table.setSorting([{ id, desc: dir === "desc" }]);
+  };
+
+  const currentSort = sorting.length > 0 ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` : '';
 
   return (
     <div>
       <div className="flex items-center py-4 gap-4">
-        <Select
-          value={(table.getColumn("status")?.getFilterValue() as string) ?? ""}
-          onValueChange={(value) => table.getColumn("status")?.setFilterValue(value === "all" ? "" : value)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
+        <Select onValueChange={handleSortChange} value={currentSort}>
+          <SelectTrigger className="w-[350px]">
+            <SelectValue placeholder="Sort by..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="Scheduled">Scheduled</SelectItem>
-            <SelectItem value="Completed">Completed</SelectItem>
-            <SelectItem value="Cancelled">Cancelled</SelectItem>
+            <SelectItem value="date-desc">Last Consultation Date (Newest to Oldest)</SelectItem>
+            <SelectItem value="date-asc">First Consultation Date (Oldest to Newest)</SelectItem>
           </SelectContent>
         </Select>
       </div>

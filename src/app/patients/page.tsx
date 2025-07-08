@@ -6,11 +6,26 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useAppContext } from "@/context/app-context";
 import { PatientForm } from "./patient-form";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export default function PatientsPage() {
-  const { patients, isLoading } = useAppContext();
+  const { patients, consultations, isLoading } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Augment patient data with last consultation date for sorting
+  const augmentedPatients = useMemo(() => {
+    if (isLoading) return [];
+    return patients.map(patient => {
+        const patientConsultations = consultations.filter(c => c.patientId === patient.id);
+        if (patientConsultations.length === 0) {
+            return { ...patient, lastConsultationDate: null };
+        }
+        const latestConsultation = patientConsultations.reduce((latest, current) => {
+            return new Date(latest.date) > new Date(current.date) ? latest : current;
+        });
+        return { ...patient, lastConsultationDate: latestConsultation.date };
+    });
+  }, [patients, consultations, isLoading]);
 
   if (isLoading) {
     return (
@@ -32,7 +47,7 @@ export default function PatientsPage() {
           </PatientForm>
         </div>
       </div>
-      <DataTable data={patients} columns={columns} />
+      <DataTable data={augmentedPatients} columns={columns} />
     </div>
   );
 }
