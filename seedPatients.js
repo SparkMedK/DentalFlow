@@ -22,7 +22,7 @@ async function seedPatients() {
       return `${year}-${month}-${day}`;
     };
     batch.set(docRef, {
-      name: `Patient No ${i}`,
+      name: `PN ${i}`,
       phone: fakePhone,
       address: `Sample Address ${i}`,
       dob: randomDate(),
