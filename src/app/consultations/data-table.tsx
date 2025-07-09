@@ -29,6 +29,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import type { DateRange } from "react-day-picker";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -46,6 +48,9 @@ export function DataTable<TData, TValue>({
     []
   );
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
+    undefined
+  );
 
   const table = useReactTable({
     data,
@@ -68,6 +73,10 @@ export function DataTable<TData, TValue>({
         },
     }
   });
+  
+  React.useEffect(() => {
+    table.getColumn("date")?.setFilterValue(dateRange);
+  }, [dateRange, table]);
 
   const handleSortChange = (value: string) => {
     if (!value) {
@@ -89,6 +98,7 @@ export function DataTable<TData, TValue>({
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
+        <DateRangePicker date={dateRange} onDateChange={setDateRange} />
         <Select
           value={(table.getColumn("status")?.getFilterValue() as string) ?? "all"}
           onValueChange={(value) =>

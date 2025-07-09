@@ -1,6 +1,6 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { Consultation, Patient } from "@/lib/types";
 import { Pencil, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { format } from "date-fns";
+import { type DateRange } from "react-day-picker";
 import {
   Tooltip,
   TooltipContent,
@@ -103,6 +104,29 @@ const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }
   );
 };
 
+const dateFilterFn: FilterFn<any> = (row, columnId, value) => {
+    const date = new Date(row.getValue(columnId));
+    const range = value as DateRange | undefined;
+
+    if (!range?.from) {
+      return true;
+    }
+    
+    date.setHours(0, 0, 0, 0);
+
+    const fromDate = new Date(range.from);
+    fromDate.setHours(0, 0, 0, 0);
+
+    if (!range.to) {
+      return date.getTime() === fromDate.getTime();
+    }
+    
+    const toDate = new Date(range.to);
+    toDate.setHours(0, 0, 0, 0);
+
+    return date.getTime() >= fromDate.getTime() && date.getTime() <= toDate.getTime();
+};
+
 export const columns: ColumnDef<ConsultationWithPatient>[] = [
   {
     id: "patientInfo",
@@ -115,6 +139,7 @@ export const columns: ColumnDef<ConsultationWithPatient>[] = [
     accessorKey: "date",
     header: "Date",
     cell: ({ row }) => format(new Date(row.original.date), "MM/dd/yyyy"),
+    filterFn: dateFilterFn,
   },
   {
     accessorKey: "time",
