@@ -2,9 +2,10 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Patient } from "@/lib/types";
-import { Pencil, Trash2, Stethoscope } from "lucide-react";
+import { Pencil, Trash2, Stethoscope, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PatientForm } from "./patient-form";
+import { PatientDetailDialog } from "./patient-detail-dialog";
 import { useState } from "react";
 import { useAppContext } from "@/context/app-context";
 import {
@@ -33,6 +34,7 @@ const ActionsCell = ({ patient }: { patient: Patient }) => {
   const { deletePatient } = useAppContext();
   const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
   const [isConsultationFormOpen, setIsConsultationFormOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const newConsultation = {
       patientId: patient.id,
@@ -50,8 +52,24 @@ const ActionsCell = ({ patient }: { patient: Patient }) => {
         open={isConsultationFormOpen}
         onOpenChange={setIsConsultationFormOpen}
       />
+      <PatientDetailDialog
+        patient={patient}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
       <AlertDialog>
         <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setIsDetailOpen(true)}>
+                <Eye className="h-4 w-4" />
+                <span className="sr-only">View Patient</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>View Patient</p>
+            </TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={() => setIsPatientFormOpen(true)}>

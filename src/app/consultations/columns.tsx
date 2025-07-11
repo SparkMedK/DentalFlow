@@ -2,13 +2,14 @@
 
 import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { Consultation, Patient } from "@/lib/types";
-import { Pencil, Sparkles, Trash2 } from "lucide-react";
+import { Pencil, Sparkles, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/context/app-context";
 import { useState } from "react";
 import { ConsultationForm } from "./consultation-form";
 import { AiSummaryDialog } from "./ai-summary-dialog";
+import { ConsultationDetailDialog } from "./consultation-detail-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,7 @@ const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }
   const { deleteConsultation } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   return (
     <TooltipProvider>
@@ -48,8 +50,24 @@ const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }
         open={isSummaryOpen}
         onOpenChange={setIsSummaryOpen}
       />
+      <ConsultationDetailDialog
+        consultation={consultation}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
       <AlertDialog>
         <div className="flex items-center gap-1">
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => setIsDetailOpen(true)}>
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View Details</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>View Details</p>
+                </TooltipContent>
+            </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" onClick={() => setIsSummaryOpen(true)}>
