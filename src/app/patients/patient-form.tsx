@@ -25,10 +25,12 @@ import * as z from "zod";
 import { Patient } from "@/lib/types";
 import { useAppContext } from "@/context/app-context";
 import React from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const patientSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   phone: z.string().regex(/^\d{8}$/, "Phone number must be exactly 8 digits."),
+  cin: z.string().min(1, "CIN is required."),
   dob: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid date."),
   address: z.string().min(1, "Address is required."),
   patientHistory: z.string().min(1, "Patient history is required."),
@@ -53,6 +55,7 @@ export function PatientForm({
     defaultValues: patient || {
       name: "",
       phone: "",
+      cin: "",
       dob: "",
       address: "",
       patientHistory: "",
@@ -63,11 +66,12 @@ export function PatientForm({
     form.reset(patient || {
       name: "",
       phone: "",
+      cin: "",
       dob: "",
       address: "",
       patientHistory: "",
     });
-  }, [patient, form]);
+  }, [patient, form, open]);
 
   const onSubmit = (values: z.infer<typeof patientSchema>) => {
     if (patient) {
@@ -76,13 +80,17 @@ export function PatientForm({
       addPatient(values);
     }
     onOpenChange(false);
-    form.reset();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+        if (!isOpen && form.formState.isDirty) {
+            return;
+        }
+        onOpenChange(isOpen);
+    }}>
       {children && <div onClick={() => onOpenChange(true)}>{children}</div>}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{patient ? "Edit Patient" : "Add Patient"}</DialogTitle>
           <DialogDescription>
@@ -92,73 +100,92 @@ export function PatientForm({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="12345678" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="dob"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date of Birth</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="123 Main St, Anytown, USA" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="patientHistory"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Patient History</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Allergies, past surgeries, etc." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 min-h-0">
+            <ScrollArea className="h-full">
+              <div className="space-y-4 pr-6 pl-1 py-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                          <Input placeholder="12345678" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CIN</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Patient National ID" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="dob"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date of Birth</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Address</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="123 Main St, Anytown, USA" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="patientHistory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Patient History</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Allergies, past surgeries, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </ScrollArea>
+            <DialogFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button type="submit">Save</Button>
             </DialogFooter>

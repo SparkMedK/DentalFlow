@@ -33,6 +33,7 @@ import { Consultation } from "@/lib/types";
 import { useAppContext } from "@/context/app-context";
 import React from "react";
 import Select from "react-select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const consultationSchema = z.object({
   patientId: z.string().min(1, "Patient is required."),
@@ -43,6 +44,8 @@ const consultationSchema = z.object({
   status: z.enum(["Scheduled", "Completed", "Cancelled"]),
   treatmentPlan: z.string().optional(),
   followUpActions: z.string().optional(),
+  actCode: z.string().optional(),
+  toothNumber: z.string().optional(),
 });
 
 interface ConsultationFormProps {
@@ -70,6 +73,8 @@ export function ConsultationForm({
       status: "Scheduled",
       treatmentPlan: "",
       followUpActions: "",
+      actCode: "",
+      toothNumber: "",
     },
   });
   
@@ -83,6 +88,8 @@ export function ConsultationForm({
       status: "Scheduled",
       treatmentPlan: "",
       followUpActions: "",
+      actCode: "",
+      toothNumber: "",
     };
     form.reset(consultation ? { ...defaultValues, ...consultation } : defaultValues);
   }, [consultation, form, open]);
@@ -93,10 +100,12 @@ export function ConsultationForm({
         ...values,
         treatmentPlan: values.treatmentPlan || 'Not specified',
         followUpActions: values.followUpActions || 'Not specified',
+        actCode: values.actCode || '',
+        toothNumber: values.toothNumber || '',
     };
 
     if (consultation?.id) {
-      updateConsultation({ ...consultation, ...finalValues, id: consultation.id });
+      updateConsultation({ ...consultation, ...finalValues, id: consultation.id } as Consultation);
     } else {
       addConsultation(finalValues); 
     }
@@ -151,9 +160,14 @@ export function ConsultationForm({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+        if (!isOpen && form.formState.isDirty) {
+            return;
+        }
+        onOpenChange(isOpen);
+    }}>
       {children && <div onClick={() => onOpenChange(true)}>{children}</div>}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{consultation?.id ? "Edit Consultation" : "Add Consultation"}</DialogTitle>
           <DialogDescription>
@@ -163,139 +177,171 @@ export function ConsultationForm({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="patientId"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Patient</FormLabel>
-                    <Select
-                      instanceId="patient-select"
-                      options={patientOptions}
-                      value={patientOptions.find(option => option.value === field.value) || null}
-                      onChange={(option) => field.onChange(option?.value || "")}
-                      placeholder="Select or search for a patient..."
-                      styles={selectStyles}
-                      isDisabled={isEditing || (!!consultation?.patientId && !consultation?.id)}
-                    />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex-1 min-h-0">
+             <ScrollArea className="h-full">
+              <div className="space-y-4 pr-6 pl-1 py-4">
                 <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                        <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
+                  control={form.control}
+                  name="patientId"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Patient</FormLabel>
+                        <Select
+                          instanceId="patient-select"
+                          options={patientOptions}
+                          value={patientOptions.find(option => option.value === field.value) || null}
+                          onChange={(option) => field.onChange(option?.value || "")}
+                          placeholder="Select or search for a patient..."
+                          styles={selectStyles}
+                          isDisabled={isEditing || (!!consultation?.patientId && !consultation?.id)}
+                        />
+                      <FormMessage />
                     </FormItem>
-                )}
+                  )}
                 />
-                <FormField
-                control={form.control}
-                name="time"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Time</FormLabel>
-                    <FormControl>
-                        <Input type="time" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            </div>
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Reason for Visit</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Routine check-up, toothache, etc." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="treatmentPlan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Treatment Plan</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Details of the treatment plan..."
-                      {...field}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="followUpActions"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Follow-up Actions</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="E.g., schedule next appointment, prescription details..."
-                      {...field}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
-                    <FormControl>
-                        <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <ShadSelect onValueChange={field.onChange} defaultValue={field.value}>
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Date</FormLabel>
                         <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
+                            <Input type="date" {...field} />
                         </FormControl>
-                        <SelectContent>
-                        <SelectItem value="Scheduled">Scheduled</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                        <SelectItem value="Cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                    </ShadSelect>
-                    <FormMessage />
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="time"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Time</FormLabel>
+                        <FormControl>
+                            <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="actCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Act Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Medical act code" {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="toothNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tooth Number</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Tooth number (optional)" {...field} value={field.value ?? ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="reason"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reason for Visit (Procedure Label)</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Routine check-up, toothache, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
-                )}
+                  )}
                 />
-            </div>
-            <DialogFooter>
+                <FormField
+                  control={form.control}
+                  name="treatmentPlan"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Treatment Plan</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Details of the treatment plan..."
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="followUpActions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Follow-up Actions</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="E.g., schedule next appointment, prescription details..."
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Price ($)</FormLabel>
+                        <FormControl>
+                            <Input type="number" step="0.01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <ShadSelect onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="Scheduled">Scheduled</SelectItem>
+                            <SelectItem value="Completed">Completed</SelectItem>
+                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                        </ShadSelect>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+              </div>
+            </ScrollArea>
+            <DialogFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button type="submit">Save</Button>
             </DialogFooter>

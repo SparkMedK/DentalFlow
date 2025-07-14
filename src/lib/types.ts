@@ -6,6 +6,7 @@ export interface Patient {
   address: string;
   patientHistory: string;
   createdAt: string;
+  cin: string;
 }
 
 export interface Consultation {
@@ -18,4 +19,6 @@ export interface Consultation {
   status: 'Scheduled' | 'Completed' | 'Cancelled';
   treatmentPlan: string;
   followUpActions: string;
+  actCode?: string;
+  toothNumber?: string;
 }

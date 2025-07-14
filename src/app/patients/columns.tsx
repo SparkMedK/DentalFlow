@@ -127,14 +127,14 @@ export const columns: ColumnDef<PatientWithLastConsultation>[] = [
     accessorKey: "name",
     header: "Name",
   },
+    {
+    accessorKey: "cin",
+    header: "CIN",
+  },
   {
     accessorKey: "dob",
     header: "Date of Birth",
     cell: ({ row }) => format(new Date(row.original.dob), "MM/dd/yyyy"),
-  },
-  {
-    accessorKey: "address",
-    header: "Address",
   },
   {
     accessorKey: "phone",
@@ -151,4 +151,7 @@ export const columns: ColumnDef<PatientWithLastConsultation>[] = [
   {
     accessorKey: "lastConsultationDate",
   },
+  {
+      accessorKey: "address",
+  }
 ];

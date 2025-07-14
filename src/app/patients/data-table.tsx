@@ -60,7 +60,7 @@ export function DataTable<TData, TValue>({
         pagination: {
             pageSize: 10,
         },
-        columnVisibility: { createdAt: false, lastConsultationDate: false }
+        columnVisibility: { createdAt: false, lastConsultationDate: false, address: false }
     }
   });
 
@@ -79,7 +79,7 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center py-4 gap-4">
         <Input
-          placeholder="Filter by name, phone, or birthday (YYYY-MM-DD)..."
+          placeholder="Filter by name, phone, CIN or birthday..."
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
