@@ -45,8 +45,8 @@ export function CnamFormDialog({
         </DialogHeader>
         <div className="flex-1 min-h-0">
           <ScrollArea className="h-full bg-gray-300 p-4 rounded-md">
-            <div className="scale-[0.9] origin-top">
-                <CnamForm ref={componentRef} consultation={consultation} />
+            <div ref={componentRef}>
+                <CnamForm consultation={consultation} />
             </div>
           </ScrollArea>
         </div>
