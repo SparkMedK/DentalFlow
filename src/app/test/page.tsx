@@ -2,19 +2,18 @@
 
 import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import CNAMPreview from "./cnam-preview";
 import { GenerateAssuranceDialog } from "./generate-assurance-dialog";
 import { Button } from "@/components/ui/button";
 import { Patient, Consultation } from "@/lib/types";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import type { AssuranceRecord } from "./columns";
+import { useRouter } from "next/navigation";
 
 export default function TestPage() {
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-    const [selectedPatient, setSelectedPatient] = React.useState<Patient | null>(null);
-    const [selectedConsultation, setSelectedConsultation] = React.useState<Consultation | null>(null);
     const [assuranceRecords, setAssuranceRecords] = React.useState<AssuranceRecord[]>([]);
+    const router = useRouter();
     
     const handleSelectionsComplete = (patient: Patient, consultation: Consultation) => {
         const newRecord: AssuranceRecord = {
@@ -24,19 +23,13 @@ export default function TestPage() {
             assuranceType: "CNAM",
             generationDate: new Date().toISOString(),
         };
-
-        // Add to records and set as current preview
         setAssuranceRecords(prev => [newRecord, ...prev]);
-        setSelectedPatient(patient);
-        setSelectedConsultation(consultation);
         setIsDialogOpen(false);
     };
 
     const handleShowPreview = (record: AssuranceRecord) => {
-        setSelectedPatient(record.patient);
-        setSelectedConsultation(record.consultation);
-        // Scroll to top to see the preview
-        window.scrollTo(0, 0);
+        sessionStorage.setItem('cnam-preview-data', JSON.stringify(record));
+        router.push(`/test/${record.id}`);
     }
 
     return (
@@ -51,21 +44,6 @@ export default function TestPage() {
                     <h2 className="text-3xl font-bold tracking-tight">Test Page</h2>
                     <Button onClick={() => setIsDialogOpen(true)}>Generate Assurance Form</Button>
                 </div>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>CNAM PDF Preview</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {selectedPatient && selectedConsultation ? (
-                            <CNAMPreview patient={selectedPatient} consultation={selectedConsultation} />
-                        ) : (
-                            <div className="flex items-center justify-center h-[60vh] bg-muted rounded-md">
-                                <p className="text-muted-foreground">Select a patient and consultation to see the preview.</p>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-
                 <div className="space-y-4">
                     <h2 className="text-2xl font-bold tracking-tight">Social Assurance Management</h2>
                     <Card>
