@@ -31,3 +31,16 @@ export interface Consultation {
   treatmentPlan: string;
   followUpActions: string;
 }
+
+export interface Act {
+  code: string;
+  designation: string;
+  cotation: string;
+  honoraire: number;
+}
+
+export interface ActSection {
+  id: string;
+  title: string;
+  acts: Act[];
+}
