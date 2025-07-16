@@ -1,3 +1,4 @@
+
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
@@ -58,7 +59,7 @@ export const columns = ({
   {
     accessorKey: "patient.name",
     header: "Patient Name",
-    cell: ({ row }) => row.original.patient.name,
+    cell: ({ row }) => `${row.original.patient.firstName} ${row.original.patient.lastName}`,
   },
   {
     accessorKey: "consultation.date",

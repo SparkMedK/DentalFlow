@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -50,7 +51,7 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
 
     const patientOptions = React.useMemo(() => patients.map(p => ({
         value: p.id,
-        label: p.name
+        label: `${p.firstName} ${p.lastName}`
     })), [patients]);
 
     const availableConsultations = React.useMemo(() => {
@@ -118,7 +119,7 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
                     {/* Step 2: Consultation Selection */}
                     {step === 2 && selectedPatient && (
                          <div className="space-y-2">
-                            <label className="text-sm font-medium">Step 2: Consultation for {selectedPatient.name}</label>
+                            <label className="text-sm font-medium">Step 2: Consultation for {selectedPatient.firstName} {selectedPatient.lastName}</label>
                             {availableConsultations.length > 0 ? (
                                 <ScrollArea className="h-48 rounded-md border p-2">
                                      <div className="space-y-2">

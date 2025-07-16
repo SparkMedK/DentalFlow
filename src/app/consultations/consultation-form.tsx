@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -105,7 +106,7 @@ export function ConsultationForm({
   
   const patientOptions = React.useMemo(() => patients.map(p => ({
     value: p.id,
-    label: `${p.name} - ${p.phone}`,
+    label: `${p.firstName} ${p.lastName} - ${p.phone}`,
   })), [patients]);
 
   const isEditing = !!consultation?.id;

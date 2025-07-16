@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -48,7 +49,7 @@ export function ConsultationDetailDialog({
           <div className="space-y-1">
             <h4 className="font-semibold text-base">Patient Information</h4>
             <p>
-              <strong>Name:</strong> {patient?.name ?? "N/A"}
+              <strong>Name:</strong> {patient ? `${patient.firstName} ${patient.lastName}` : "N/A"}
             </p>
             <p>
               <strong>Phone:</strong> {patient?.phone ?? "N/A"}

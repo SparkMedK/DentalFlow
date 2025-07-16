@@ -10,7 +10,8 @@ export interface SocialSecurity {
 
 export interface Patient {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   phone: string;
   dob: string;
   address: string;

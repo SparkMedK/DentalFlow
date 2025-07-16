@@ -1,3 +1,4 @@
+
 const { initializeApp, applicationDefault } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 
@@ -22,7 +23,8 @@ async function seedPatients() {
       return `${year}-${month}-${day}`;
     };
     batch.set(docRef, {
-      name: `PN ${i}`,
+      firstName: `FirstName ${i}`,
+      lastName: `LastName ${i}`,
       phone: fakePhone,
       address: `Sample Address ${i}`,
       dob: randomDate(),

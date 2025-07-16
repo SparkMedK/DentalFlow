@@ -45,7 +45,8 @@ const socialSecuritySchema = z.object({
 });
 
 const patientSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
+  firstName: z.string().min(2, "First name must be at least 2 characters."),
+  lastName: z.string().min(2, "Last name must be at least 2 characters."),
   phone: z.string().regex(/^\d{8}$/, "Phone number must be exactly 8 digits."),
   dob: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid date."),
   address: z.string().min(1, "Address is required."),
@@ -70,7 +71,8 @@ export function PatientForm({
   const form = useForm<z.infer<typeof patientSchema>>({
     resolver: zodResolver(patientSchema),
     defaultValues: patient || {
-      name: "",
+      firstName: "",
+      lastName: "",
       phone: "",
       dob: "",
       address: "",
@@ -88,7 +90,8 @@ export function PatientForm({
 
   React.useEffect(() => {
     form.reset(patient || {
-      name: "",
+      firstName: "",
+      lastName: "",
       phone: "",
       dob: "",
       address: "",
@@ -102,7 +105,7 @@ export function PatientForm({
         typeAssurance: "CNSS",
       },
     });
-  }, [patient, form]);
+  }, [patient, form, open]);
 
   const onSubmit = (values: z.infer<typeof patientSchema>) => {
     if (patient) {
@@ -130,19 +133,34 @@ export function PatientForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="max-h-[70vh] overflow-y-auto pr-4 pl-1 space-y-4">
               <h3 className="text-lg font-semibold">Patient Information</h3>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="phone"

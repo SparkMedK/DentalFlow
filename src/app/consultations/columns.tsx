@@ -1,3 +1,4 @@
+
 "use client";
 
 import { ColumnDef, FilterFn } from "@tanstack/react-table";
@@ -149,9 +150,9 @@ export const columns: ColumnDef<ConsultationWithPatient>[] = [
   {
     id: "patientInfo",
     header: "Patient",
-    cell: ({ row }) => row.original.patient?.name ?? "Unknown",
+    cell: ({ row }) => row.original.patient ? `${row.original.patient.firstName} ${row.original.patient.lastName}` : "Unknown",
     accessorFn: (row) =>
-      `${row.patient?.name} ${row.patient?.phone} ${row.patient?.dob}`,
+      row.patient ? `${row.patient.firstName} ${row.patient.lastName} ${row.patient.phone} ${row.patient.dob}` : "",
   },
   {
     accessorKey: "date",

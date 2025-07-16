@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -41,7 +42,7 @@ export default function CNAMPreviewPage({ params }: { params: { id: string }}) {
                 <CardHeader>
                     <CardTitle>CNAM PDF Preview</CardTitle>
                     <CardDescription>
-                        This is a preview of the generated CNAM form for {patient?.name}.
+                        This is a preview of the generated CNAM form for {patient ? `${patient.firstName} ${patient.lastName}` : ""}.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

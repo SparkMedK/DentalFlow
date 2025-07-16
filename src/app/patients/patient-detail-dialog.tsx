@@ -32,7 +32,7 @@ export function PatientDetailDialog({
         <DialogHeader>
           <DialogTitle>Patient Details</DialogTitle>
           <DialogDescription>
-            Complete information for {patient.name}.
+            Complete information for {patient.firstName} {patient.lastName}.
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto pr-4 pl-1">
@@ -40,7 +40,7 @@ export function PatientDetailDialog({
             <h4 className="font-semibold text-base mb-2">Patient Information</h4>
             <div className="space-y-1">
               <p>
-                <strong>Name:</strong> {patient.name}
+                <strong>Name:</strong> {patient.firstName} {patient.lastName}
               </p>
               <p>
                 <strong>Phone:</strong> {patient.phone}
