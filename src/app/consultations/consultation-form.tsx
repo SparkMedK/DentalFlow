@@ -20,6 +20,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Checkbox } from "@/components/ui/checkbox";
+import {
   Form,
   FormControl,
   FormField,
@@ -34,6 +41,8 @@ import { Consultation } from "@/lib/types";
 import { useAppContext } from "@/context/app-context";
 import React from "react";
 import Select from "react-select";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 const consultationSchema = z.object({
   patientId: z.string().min(1, "Patient is required."),
@@ -44,6 +53,7 @@ const consultationSchema = z.object({
   status: z.enum(["Scheduled", "Completed", "Cancelled"]),
   treatmentPlan: z.string().optional(),
   followUpActions: z.string().optional(),
+  acts: z.array(z.string()).optional(),
 });
 
 interface ConsultationFormProps {
@@ -59,10 +69,13 @@ export function ConsultationForm({
   open,
   onOpenChange,
 }: ConsultationFormProps) {
-  const { patients, addConsultation, updateConsultation } = useAppContext();
+  const { patients, addConsultation, updateConsultation, actSections } = useAppContext();
   const form = useForm<z.infer<typeof consultationSchema>>({
     resolver: zodResolver(consultationSchema),
-    defaultValues: consultation || {
+    defaultValues: consultation ? {
+      ...consultation,
+      acts: consultation.acts || [],
+    } : {
       patientId: "",
       date: new Date().toISOString().split('T')[0],
       time: "10:00",
@@ -71,6 +84,7 @@ export function ConsultationForm({
       status: "Scheduled",
       treatmentPlan: "",
       followUpActions: "",
+      acts: [],
     },
   });
   
@@ -84,8 +98,9 @@ export function ConsultationForm({
       status: "Scheduled",
       treatmentPlan: "",
       followUpActions: "",
+      acts: [],
     };
-    form.reset(consultation ? { ...defaultValues, ...consultation } : defaultValues);
+    form.reset(consultation ? { ...defaultValues, ...consultation, acts: consultation.acts || [] } : defaultValues);
   }, [consultation, form, open]);
 
 
@@ -94,6 +109,7 @@ export function ConsultationForm({
         ...values,
         treatmentPlan: values.treatmentPlan || 'Not specified',
         followUpActions: values.followUpActions || 'Not specified',
+        acts: values.acts || [],
     };
 
     if (consultation?.id) {
@@ -154,7 +170,7 @@ export function ConsultationForm({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children && <div onClick={() => onOpenChange(true)}>{children}</div>}
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>{consultation?.id ? "Edit Consultation" : "Add Consultation"}</DialogTitle>
           <DialogDescription>
@@ -165,6 +181,8 @@ export function ConsultationForm({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <ScrollArea className="max-h-[70vh] pr-4 pl-1">
+            <div className="space-y-4">
             <FormField
               control={form.control}
               name="patientId"
@@ -296,7 +314,66 @@ export function ConsultationForm({
                 )}
                 />
             </div>
-            <DialogFooter>
+
+            <Separator />
+            
+            <FormField
+                control={form.control}
+                name="acts"
+                render={({ field }) => (
+                    <FormItem>
+                        <div className="mb-4">
+                            <FormLabel className="text-base">Medical Acts</FormLabel>
+                        </div>
+                        <Accordion type="multiple" className="w-full">
+                            {actSections.map((section) => (
+                                <AccordionItem value={section.id} key={section.id}>
+                                    <AccordionTrigger>{section.title}</AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="space-y-2">
+                                            {section.acts.map((act) => (
+                                                <FormField
+                                                    key={act.code}
+                                                    control={form.control}
+                                                    name="acts"
+                                                    render={({ field }) => (
+                                                        <FormItem
+                                                            key={act.code}
+                                                            className="flex flex-row items-start space-x-3 space-y-0"
+                                                        >
+                                                            <FormControl>
+                                                                <Checkbox
+                                                                    checked={field.value?.includes(act.code)}
+                                                                    onCheckedChange={(checked) => {
+                                                                        return checked
+                                                                            ? field.onChange([...(field.value || []), act.code])
+                                                                            : field.onChange(
+                                                                                field.value?.filter(
+                                                                                    (value) => value !== act.code
+                                                                                )
+                                                                            )
+                                                                    }}
+                                                                />
+                                                            </FormControl>
+                                                            <FormLabel className="font-normal">
+                                                                {act.designation} ({act.code})
+                                                            </FormLabel>
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            ))}
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
+                        </Accordion>
+                        <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+          </ScrollArea>
+            <DialogFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button type="submit">Save</Button>
             </DialogFooter>

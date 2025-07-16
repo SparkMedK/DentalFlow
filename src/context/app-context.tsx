@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Patient, Consultation } from '@/lib/types';
+import { Patient, Consultation, ActSection, Act } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { db, auth, onAuthStateChanged, signOut, User } from "@/lib/firebase";
 import { 
@@ -24,6 +24,7 @@ interface AppContextType {
   signOutUser: () => void;
   patients: Patient[];
   consultations: Consultation[];
+  actSections: ActSection[];
   isLoading: boolean;
   addPatient: (patient: Omit<Patient, 'id' | 'createdAt'>) => Promise<void>;
   updatePatient: (patient: Patient) => Promise<void>;
@@ -41,6 +42,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [actSections, setActSections] = useState<ActSection[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
@@ -63,6 +65,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (!authLoading) setDataLoading(false);
       setPatients([]);
       setConsultations([]);
+      setActSections([]);
       return;
     }
 
@@ -78,6 +81,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const consultationsSnapshot = await getDocs(consultationsCollection);
         const consultationsList = consultationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Consultation));
         setConsultations(consultationsList);
+
+        const actSectionsCollection = collection(db, 'actSections');
+        const actSectionsSnapshot = await getDocs(actSectionsCollection);
+        const actSectionsListPromises = actSectionsSnapshot.docs.map(async (sectionDoc) => {
+            const sectionData = sectionDoc.data();
+            const actsCollection = collection(db, 'actSections', sectionDoc.id, 'acts');
+            const actsSnapshot = await getDocs(actsCollection);
+            const actsList = actsSnapshot.docs.map(actDoc => ({ ...actDoc.data() } as Act));
+            return {
+                id: sectionDoc.id,
+                title: sectionData.title,
+                acts: actsList,
+            } as ActSection;
+        });
+        const actSectionsList = await Promise.all(actSectionsListPromises);
+        setActSections(actSectionsList);
 
       } catch (error) {
         console.error("Error fetching data from Firestore:", error);
@@ -208,6 +227,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       signOutUser,
       patients, 
       consultations, 
+      actSections,
       isLoading: authLoading || dataLoading,
       addPatient, 
       updatePatient, 

@@ -30,6 +30,7 @@ export interface Consultation {
   status: 'Scheduled' | 'Completed' | 'Cancelled';
   treatmentPlan: string;
   followUpActions: string;
+  acts?: string[];
 }
 
 export interface Act {

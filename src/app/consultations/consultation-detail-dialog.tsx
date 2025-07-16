@@ -14,6 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import type { ConsultationWithPatient } from "./page";
+import { useAppContext } from "@/context/app-context";
+import { useMemo } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ConsultationDetailDialogProps {
   consultation: ConsultationWithPatient;
@@ -26,7 +29,16 @@ export function ConsultationDetailDialog({
   open,
   onOpenChange,
 }: ConsultationDetailDialogProps) {
+  const { actSections } = useAppContext();
   const patient = consultation.patient;
+
+  const selectedActs = useMemo(() => {
+    if (!consultation.acts || consultation.acts.length === 0) {
+      return [];
+    }
+    const allActs = actSections.flatMap(section => section.acts);
+    return allActs.filter(act => consultation.acts?.includes(act.code));
+  }, [consultation.acts, actSections]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -37,7 +49,7 @@ export function ConsultationDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Consultation Details</DialogTitle>
           <DialogDescription>
@@ -45,6 +57,7 @@ export function ConsultationDetailDialog({
             {format(new Date(consultation.date), "MMMM dd, yyyy")}.
           </DialogDescription>
         </DialogHeader>
+        <ScrollArea className="max-h-[70vh] pr-4 pl-1">
         <div className="space-y-4 py-4 text-sm">
           <div className="space-y-1">
             <h4 className="font-semibold text-base">Patient Information</h4>
@@ -107,8 +120,24 @@ export function ConsultationDetailDialog({
               {consultation.followUpActions}
             </p>
           </div>
+          {selectedActs.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <p className="font-semibold">Medical Acts Performed:</p>
+                <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                  {selectedActs.map(act => (
+                    <li key={act.code}>
+                      {act.designation} <span className="text-xs">({act.code})</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </>
+          )}
         </div>
-        <DialogFooter>
+        </ScrollArea>
+        <DialogFooter className="pt-4">
           <Button
             type="button"
             variant="secondary"
