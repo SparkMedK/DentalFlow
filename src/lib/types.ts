@@ -1,3 +1,13 @@
+
+export interface SocialSecurity {
+  idAssurance: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  codePostal: string;
+  typeAssurance: "CNSS" | "CNRPS" | "Convention bilatérale";
+}
+
 export interface Patient {
   id: string;
   name: string;
@@ -6,6 +16,7 @@ export interface Patient {
   address: string;
   patientHistory: string;
   createdAt: string;
+  socialSecurity?: SocialSecurity;
 }
 
 export interface Consultation {
