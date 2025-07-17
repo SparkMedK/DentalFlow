@@ -34,6 +34,8 @@ import { Patient } from "@/lib/types";
 import { useAppContext } from "@/context/app-context";
 import React from "react";
 import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
 const socialSecuritySchema = z.object({
   idAssurance: z.string().min(1, "Assurance ID is required."),
@@ -54,6 +56,8 @@ const patientSchema = z.object({
   socialSecurity: socialSecuritySchema.optional(),
 });
 
+type PatientFormValues = z.infer<typeof patientSchema>;
+
 interface PatientFormProps {
   patient?: Patient;
   children?: React.ReactNode;
@@ -68,7 +72,9 @@ export function PatientForm({
   onOpenChange,
 }: PatientFormProps) {
   const { addPatient, updatePatient } = useAppContext();
-  const form = useForm<z.infer<typeof patientSchema>>({
+  const [step, setStep] = React.useState(1);
+
+  const form = useForm<PatientFormValues>({
     resolver: zodResolver(patientSchema),
     defaultValues: patient || {
       firstName: "",
@@ -89,6 +95,7 @@ export function PatientForm({
   });
 
   React.useEffect(() => {
+    setStep(1); // Reset to step 1 when dialog opens/closes
     form.reset(patient || {
       firstName: "",
       lastName: "",
@@ -107,14 +114,28 @@ export function PatientForm({
     });
   }, [patient, form, open]);
 
-  const onSubmit = (values: z.infer<typeof patientSchema>) => {
+  const onSubmit = (values: PatientFormValues) => {
     if (patient) {
       updatePatient({ ...patient, ...values });
     } else {
       addPatient(values);
     }
     onOpenChange(false);
-    form.reset();
+  };
+  
+  const handleNext = async () => {
+    const fieldsToValidate: (keyof PatientFormValues)[] = [
+      "firstName",
+      "lastName",
+      "phone",
+      "dob",
+      "address",
+      "patientHistory",
+    ];
+    const isValid = await form.trigger(fieldsToValidate);
+    if (isValid) {
+      setStep(2);
+    }
   };
 
   return (
@@ -124,206 +145,233 @@ export function PatientForm({
         <DialogHeader>
           <DialogTitle>{patient ? "Edit Patient" : "Add Patient"}</DialogTitle>
           <DialogDescription>
-            {patient
-              ? "Update the patient's details."
-              : "Add a new patient to the directory."}
+             Step {step} of 2 - {step === 1 ? "Patient Information" : "Security Insurance"}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="max-h-[70vh] overflow-y-auto pr-4 pl-1 space-y-4">
-              <h3 className="text-lg font-semibold">Patient Information</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="12345678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="dob"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="123 Main St, Anytown, USA"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="patientHistory"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Patient History</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Allergies, past surgeries, etc."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Separator className="my-6" />
-
-              <h3 className="text-lg font-semibold">Security Insurance</h3>
-              <FormField
-                control={form.control}
-                name="socialSecurity.idAssurance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Insurance ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Insurance ID" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="socialSecurity.firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>First Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="First Name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={form.control}
-                  name="socialSecurity.lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Last Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Last Name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-               <FormField
-                  control={form.control}
-                  name="socialSecurity.address"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Insurance Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Insurance Address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-2 gap-4">
+            <ScrollArea className="max-h-[60vh] pr-4 pl-1">
+              <div className="space-y-4">
+                {/* Step 1: Patient Information */}
+                <div className={cn("space-y-4", step !== 1 && "hidden")}>
+                  <h3 className="text-lg font-semibold">Patient Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
                     <FormField
-                    control={form.control}
-                    name="socialSecurity.codePostal"
-                    render={({ field }) => (
+                      control={form.control}
+                      name="firstName"
+                      render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Postal Code</FormLabel>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="John" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Doe" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone</FormLabel>
                         <FormControl>
-                            <Input placeholder="Postal Code" {...field} />
+                          <Input placeholder="12345678" {...field} />
                         </FormControl>
                         <FormMessage />
-                        </FormItem>
+                      </FormItem>
                     )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="dob"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Date of Birth</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="123 Main St, Anytown, USA"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="patientHistory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Patient History</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Allergies, past surgeries, etc."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Step 2: Security Insurance */}
+                <div className={cn("space-y-4", step !== 2 && "hidden")}>
+                  <h3 className="text-lg font-semibold">Security Insurance</h3>
+                  <FormField
+                    control={form.control}
+                    name="socialSecurity.idAssurance"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Insurance ID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Insurance ID" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="socialSecurity.firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="First Name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                     <FormField
-                    control={form.control}
-                    name="socialSecurity.typeAssurance"
-                    render={({ field }) => (
+                      control={form.control}
+                      name="socialSecurity.lastName"
+                      render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Assurance Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                <SelectItem value="CNSS">CNSS</SelectItem>
-                                <SelectItem value="CNRPS">CNRPS</SelectItem>
-                                <SelectItem value="Convention bilatérale">Convention bilatérale</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        <FormMessage />
+                          <FormLabel>Last Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Last Name" {...field} />
+                          </FormControl>
+                          <FormMessage />
                         </FormItem>
-                    )}
+                      )}
                     />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="socialSecurity.address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Insurance Address</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Insurance Address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="socialSecurity.codePostal"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Postal Code</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Postal Code" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="socialSecurity.typeAssurance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Assurance Type</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="CNSS">CNSS</SelectItem>
+                              <SelectItem value="CNRPS">CNRPS</SelectItem>
+                              <SelectItem value="Convention bilatérale">
+                                Convention bilatérale
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                 </div>
-            </div>
+              </div>
+            </ScrollArea>
             <DialogFooter className="pt-4">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
+              {step === 1 && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="button" onClick={handleNext}>
+                    Next
+                  </Button>
+                </>
+              )}
+              {step === 2 && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setStep(1)}
+                  >
+                    Back
+                  </Button>
+                  <Button type="submit">Save</Button>
+                </>
+              )}
             </DialogFooter>
           </form>
         </Form>
@@ -331,3 +379,5 @@ export function PatientForm({
     </Dialog>
   );
 }
+
+    
