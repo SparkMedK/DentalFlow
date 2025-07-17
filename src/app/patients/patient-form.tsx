@@ -168,8 +168,8 @@ export function PatientForm({
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
-                    <FormField
+                     />
+                     <FormField
                       control={form.control}
                       name="lastName"
                       render={({ field }) => (
@@ -181,8 +181,8 @@ export function PatientForm({
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
-                    <FormField
+                     />
+                     <FormField
                       control={form.control}
                       name="phone"
                       render={({ field }) => (
@@ -194,8 +194,10 @@ export function PatientForm({
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                     />
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                   <FormField
                     control={form.control}
                     name="address"
@@ -203,10 +205,7 @@ export function PatientForm({
                       <FormItem>
                         <FormLabel>Address</FormLabel>
                         <FormControl>
-                          <Textarea
-                            placeholder="123 Main St, Anytown, USA"
-                            {...field}
-                          />
+                           <Input  placeholder="123 Main St, Anytown, USA" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -225,6 +224,7 @@ export function PatientForm({
                       </FormItem>
                     )}
                   />
+                  </div>
                   <FormField
                     control={form.control}
                     name="patientHistory"
@@ -246,7 +246,65 @@ export function PatientForm({
                 {/* Step 2: Security Insurance */}
                 <div className={cn("space-y-4", step !== 2 && "hidden")}>
                   <h3 className="text-lg font-semibold">Security Insurance</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="socialSecurity.firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="First Name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="socialSecurity.lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Last Name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="socialSecurity.codePostal"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Postal Code</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Postal Code" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                    <FormField
+                      control={form.control}
+                      name="socialSecurity.address"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Insurance Address</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Insurance Address" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="socialSecurity.idAssurance"
@@ -287,61 +345,11 @@ export function PatientForm({
                         </FormItem>
                       )}
                     />
-                     <FormField
-                      control={form.control}
-                      name="socialSecurity.codePostal"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Postal Code</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Postal Code" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="socialSecurity.firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="First Name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="socialSecurity.lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Last Name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
                   </div>
-                  <FormField
-                    control={form.control}
-                    name="socialSecurity.address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Insurance Address</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Insurance Address" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
                 </div>
               </div>
             </ScrollArea>

@@ -170,7 +170,7 @@ export function ConsultationForm({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children && <div onClick={() => onOpenChange(true)}>{children}</div>}
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{consultation?.id ? "Edit Consultation" : "Add Consultation"}</DialogTitle>
           <DialogDescription>
@@ -181,197 +181,197 @@ export function ConsultationForm({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <ScrollArea className="max-h-[70vh] pr-4 pl-1">
-            <div className="space-y-4">
-            <FormField
-              control={form.control}
-              name="patientId"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Patient</FormLabel>
-                    <Select
-                      instanceId="patient-select"
-                      options={patientOptions}
-                      value={patientOptions.find(option => option.value === field.value) || null}
-                      onChange={(option) => field.onChange(option?.value || "")}
-                      placeholder="Select or search for a patient..."
-                      styles={selectStyles}
-                      isDisabled={isEditing || (!!consultation?.patientId && !consultation?.id)}
-                    />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <div className="grid grid-cols-2 gap-4">
-                <FormField
+          <ScrollArea className="max-h-[70vh] pr-4">
+            <div className="space-y-4 p-1">
+              <FormField
                 control={form.control}
-                name="date"
+                name="patientId"
                 render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Date</FormLabel>
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Patient</FormLabel>
+                      <Select
+                        instanceId="patient-select"
+                        options={patientOptions}
+                        value={patientOptions.find(option => option.value === field.value) || null}
+                        onChange={(option) => field.onChange(option?.value || "")}
+                        placeholder="Select or search for a patient..."
+                        styles={selectStyles}
+                        isDisabled={isEditing || (!!consultation?.patientId && !consultation?.id)}
+                      />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                          <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+                  />
+                  <FormField
+                  control={form.control}
+                  name="time"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Time</FormLabel>
+                      <FormControl>
+                          <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+                  />
+              </div>
+              <FormField
+                control={form.control}
+                name="reason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Reason for Visit</FormLabel>
                     <FormControl>
-                        <Input type="date" {...field} />
+                      <Textarea placeholder="Routine check-up, toothache, etc." {...field} />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-                <FormField
+              />
+              <FormField
                 control={form.control}
-                name="time"
+                name="treatmentPlan"
                 render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Time</FormLabel>
+                  <FormItem>
+                    <FormLabel>Treatment Plan</FormLabel>
                     <FormControl>
-                        <Input type="time" {...field} />
+                      <Textarea
+                        placeholder="Details of the treatment plan..."
+                        {...field}
+                        value={field.value ?? ""}
+                      />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-            </div>
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Reason for Visit</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Routine check-up, toothache, etc." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="treatmentPlan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Treatment Plan</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Details of the treatment plan..."
-                      {...field}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="followUpActions"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Follow-up Actions</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="E.g., schedule next appointment, prescription details..."
-                      {...field}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-                <FormField
+              />
+              <FormField
                 control={form.control}
-                name="price"
+                name="followUpActions"
                 render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
+                  <FormItem>
+                    <FormLabel>Follow-up Actions</FormLabel>
                     <FormControl>
-                        <Input type="number" step="0.01" {...field} />
+                      <Textarea
+                        placeholder="E.g., schedule next appointment, prescription details..."
+                        {...field}
+                        value={field.value ?? ""}
+                      />
                     </FormControl>
                     <FormMessage />
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-                <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <ShadSelect onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                        <SelectItem value="Scheduled">Scheduled</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                        <SelectItem value="Cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                    </ShadSelect>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-            </div>
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Price ($)</FormLabel>
+                      <FormControl>
+                          <Input type="number" step="0.01" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+                  />
+                  <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                      <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <ShadSelect onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                          <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                          <SelectItem value="Scheduled">Scheduled</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                          <SelectItem value="Cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                      </ShadSelect>
+                      <FormMessage />
+                      </FormItem>
+                  )}
+                  />
+              </div>
 
-            <Separator />
-            
-            <FormField
-                control={form.control}
-                name="acts"
-                render={({ field }) => (
-                    <FormItem>
-                        <div className="mb-4">
-                            <FormLabel className="text-base">Medical Acts</FormLabel>
-                        </div>
-                        <Accordion type="multiple" className="w-full">
-                            {actSections.map((section) => (
-                                <AccordionItem value={section.id} key={section.id}>
-                                    <AccordionTrigger>{section.title}</AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className="space-y-2">
-                                            {section.acts.map((act) => (
-                                                <FormField
-                                                    key={act.code}
-                                                    control={form.control}
-                                                    name="acts"
-                                                    render={({ field }) => (
-                                                        <FormItem
-                                                            key={act.code}
-                                                            className="flex flex-row items-start space-x-3 space-y-0"
-                                                        >
-                                                            <FormControl>
-                                                                <Checkbox
-                                                                    checked={field.value?.includes(act.code)}
-                                                                    onCheckedChange={(checked) => {
-                                                                        return checked
-                                                                            ? field.onChange([...(field.value || []), act.code])
-                                                                            : field.onChange(
-                                                                                field.value?.filter(
-                                                                                    (value) => value !== act.code
-                                                                                )
-                                                                            )
-                                                                    }}
-                                                                />
-                                                            </FormControl>
-                                                            <FormLabel className="font-normal">
-                                                                {act.designation} ({act.code})
-                                                            </FormLabel>
-                                                        </FormItem>
-                                                    )}
-                                                />
-                                            ))}
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            ))}
-                        </Accordion>
-                        <FormMessage />
-                    </FormItem>
-                )}
-                />
-            </div>
+              <Separator />
+              
+              <FormField
+                  control={form.control}
+                  name="acts"
+                  render={({ field }) => (
+                      <FormItem>
+                          <div className="mb-4">
+                              <FormLabel className="text-base">Medical Acts</FormLabel>
+                          </div>
+                          <Accordion type="multiple" className="w-full">
+                              {actSections.map((section) => (
+                                  <AccordionItem value={section.id} key={section.id}>
+                                      <AccordionTrigger>{section.title}</AccordionTrigger>
+                                      <AccordionContent>
+                                          <div className="space-y-2">
+                                              {section.acts.map((act) => (
+                                                  <FormField
+                                                      key={act.code}
+                                                      control={form.control}
+                                                      name="acts"
+                                                      render={({ field }) => (
+                                                          <FormItem
+                                                              key={act.code}
+                                                              className="flex flex-row items-start space-x-3 space-y-0"
+                                                          >
+                                                              <FormControl>
+                                                                  <Checkbox
+                                                                      checked={field.value?.includes(act.code)}
+                                                                      onCheckedChange={(checked) => {
+                                                                          return checked
+                                                                              ? field.onChange([...(field.value || []), act.code])
+                                                                              : field.onChange(
+                                                                                  field.value?.filter(
+                                                                                      (value) => value !== act.code
+                                                                                  )
+                                                                              )
+                                                                      }}
+                                                                  />
+                                                              </FormControl>
+                                                              <FormLabel className="font-normal">
+                                                                  {act.designation} ({act.code})
+                                                              </FormLabel>
+                                                          </FormItem>
+                                                      )}
+                                                  />
+                                              ))}
+                                          </div>
+                                      </AccordionContent>
+                                  </AccordionItem>
+                              ))}
+                          </Accordion>
+                          <FormMessage />
+                      </FormItem>
+                  )}
+                  />
+              </div>
           </ScrollArea>
             <DialogFooter className="pt-4">
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
