@@ -43,6 +43,7 @@ import React from "react";
 import Select from "react-select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 const consultationSchema = z.object({
   patientId: z.string().min(1, "Patient is required."),
@@ -55,6 +56,9 @@ const consultationSchema = z.object({
   followUpActions: z.string().optional(),
   acts: z.array(z.string()).optional(),
 });
+
+type ConsultationFormValues = z.infer<typeof consultationSchema>;
+
 
 interface ConsultationFormProps {
   consultation?: Partial<Consultation>;
@@ -70,6 +74,8 @@ export function ConsultationForm({
   onOpenChange,
 }: ConsultationFormProps) {
   const { patients, addConsultation, updateConsultation, actSections } = useAppContext();
+  const [step, setStep] = React.useState(1);
+
   const form = useForm<z.infer<typeof consultationSchema>>({
     resolver: zodResolver(consultationSchema),
     defaultValues: consultation ? {
@@ -89,6 +95,7 @@ export function ConsultationForm({
   });
   
   React.useEffect(() => {
+    setStep(1);
     const defaultValues = {
       patientId: "",
       date: new Date().toISOString().split('T')[0],
@@ -120,6 +127,21 @@ export function ConsultationForm({
     onOpenChange(false);
   };
   
+  const handleNext = async () => {
+    const fieldsToValidate: (keyof ConsultationFormValues)[] = [
+      "patientId",
+      "date",
+      "time",
+      "reason",
+      "price",
+      "status"
+    ];
+    const isValid = await form.trigger(fieldsToValidate);
+    if (isValid) {
+      setStep(2);
+    }
+  };
+
   const patientOptions = React.useMemo(() => patients.map(p => ({
     value: p.id,
     label: `${p.firstName} ${p.lastName} - ${p.phone}`,
@@ -174,208 +196,226 @@ export function ConsultationForm({
         <DialogHeader>
           <DialogTitle>{consultation?.id ? "Edit Consultation" : "Add Consultation"}</DialogTitle>
           <DialogDescription>
-            {consultation?.id
-              ? "Update the consultation details."
-              : "Schedule a new consultation."}
+            Step {step} of 2 - {step === 1 ? "Consultation Details" : "Medical Acts"}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <ScrollArea className="max-h-[70vh] pr-4">
             <div className="space-y-4 p-1">
-              <FormField
-                control={form.control}
-                name="patientId"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Patient</FormLabel>
-                      <Select
-                        instanceId="patient-select"
-                        options={patientOptions}
-                        value={patientOptions.find(option => option.value === field.value) || null}
-                        onChange={(option) => field.onChange(option?.value || "")}
-                        placeholder="Select or search for a patient..."
-                        styles={selectStyles}
-                        isDisabled={isEditing || (!!consultation?.patientId && !consultation?.id)}
-                      />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
+              <div className={cn("space-y-4", step !== 1 && "hidden")}>
+                <FormField
                   control={form.control}
-                  name="date"
+                  name="patientId"
                   render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Date</FormLabel>
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Patient</FormLabel>
+                        <Select
+                          instanceId="patient-select"
+                          options={patientOptions}
+                          value={patientOptions.find(option => option.value === field.value) || null}
+                          onChange={(option) => field.onChange(option?.value || "")}
+                          placeholder="Select or search for a patient..."
+                          styles={selectStyles}
+                          isDisabled={isEditing || (!!consultation?.patientId && !consultation?.id)}
+                        />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Date</FormLabel>
+                        <FormControl>
+                            <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="time"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Time</FormLabel>
+                        <FormControl>
+                            <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="reason"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reason for Visit</FormLabel>
                       <FormControl>
-                          <Input type="date" {...field} />
+                        <Textarea
+                          placeholder="E.g., routine check-up, toothache..."
+                          {...field}
+                          value={field.value ?? ""}
+                        />
                       </FormControl>
                       <FormMessage />
-                      </FormItem>
+                    </FormItem>
                   )}
-                  />
-                  <FormField
+                />
+                <FormField
                   control={form.control}
-                  name="time"
+                  name="treatmentPlan"
                   render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Time</FormLabel>
+                    <FormItem>
+                      <FormLabel>Treatment Plan</FormLabel>
                       <FormControl>
-                          <Input type="time" {...field} />
+                        <Textarea
+                          placeholder="E.g., filling, extraction, cleaning..."
+                          {...field}
+                          value={field.value ?? ""}
+                        />
                       </FormControl>
                       <FormMessage />
-                      </FormItem>
+                    </FormItem>
                   )}
-                  />
-              </div>
-              <FormField
-                control={form.control}
-                name="reason"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Reason for Visit</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Routine check-up, toothache, etc." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="treatmentPlan"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Treatment Plan</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Details of the treatment plan..."
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="followUpActions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Follow-up Actions</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="E.g., schedule next appointment, prescription details..."
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
+                />
+
+                <FormField
                   control={form.control}
-                  name="price"
+                  name="followUpActions"
                   render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Price ($)</FormLabel>
+                    <FormItem>
+                      <FormLabel>Follow-up Actions</FormLabel>
                       <FormControl>
-                          <Input type="number" step="0.01" {...field} />
+                        <Textarea
+                          placeholder="E.g., schedule next appointment, prescription details..."
+                          {...field}
+                          value={field.value ?? ""}
+                        />
                       </FormControl>
                       <FormMessage />
-                      </FormItem>
+                    </FormItem>
                   )}
-                  />
-                  <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                      <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <ShadSelect onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                          <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                          <SelectItem value="Scheduled">Scheduled</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                      </ShadSelect>
-                      <FormMessage />
-                      </FormItem>
-                  )}
-                  />
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Price ($)</FormLabel>
+                        <FormControl>
+                            <Input type="number" step="0.01" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <ShadSelect onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="Scheduled">Scheduled</SelectItem>
+                            <SelectItem value="Completed">Completed</SelectItem>
+                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                            </SelectContent>
+                        </ShadSelect>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
               </div>
 
-              <Separator />
-              
-              <FormField
-                  control={form.control}
-                  name="acts"
-                  render={({ field }) => (
-                      <FormItem>
-                          <div className="mb-4">
-                              <FormLabel className="text-base">Medical Acts</FormLabel>
-                          </div>
-                          <Accordion type="multiple" className="w-full">
-                              {actSections.map((section) => (
-                                  <AccordionItem value={section.id} key={section.id}>
-                                      <AccordionTrigger>{section.title}</AccordionTrigger>
-                                      <AccordionContent>
-                                          <div className="space-y-2">
-                                              {section.acts.map((act) => (
-                                                  <FormField
-                                                      key={act.code}
-                                                      control={form.control}
-                                                      name="acts"
-                                                      render={({ field }) => (
-                                                          <FormItem
-                                                              key={act.code}
-                                                              className="flex flex-row items-start space-x-3 space-y-0"
-                                                          >
-                                                              <FormControl>
-                                                                  <Checkbox
-                                                                      checked={field.value?.includes(act.code)}
-                                                                      onCheckedChange={(checked) => {
-                                                                          return checked
-                                                                              ? field.onChange([...(field.value || []), act.code])
-                                                                              : field.onChange(
-                                                                                  field.value?.filter(
-                                                                                      (value) => value !== act.code
-                                                                                  )
-                                                                              )
-                                                                      }}
-                                                                  />
-                                                              </FormControl>
-                                                              <FormLabel className="font-normal">
-                                                                  {act.designation} ({act.code})
-                                                              </FormLabel>
-                                                          </FormItem>
-                                                      )}
-                                                  />
-                                              ))}
-                                          </div>
-                                      </AccordionContent>
-                                  </AccordionItem>
-                              ))}
-                          </Accordion>
-                          <FormMessage />
-                      </FormItem>
-                  )}
-                  />
+              <div className={cn("space-y-4", step !== 2 && "hidden")}>
+                <FormField
+                    control={form.control}
+                    name="acts"
+                    render={() => (
+                        <FormItem>
+                            <div className="mb-4">
+                                <FormLabel className="text-base">Medical Acts</FormLabel>
+                            </div>
+                            <Accordion type="multiple" className="w-full">
+                                {actSections.map((section) => (
+                                    <AccordionItem value={section.id} key={section.id}>
+                                        <AccordionTrigger>{section.title}</AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="space-y-2">
+                                                {section.acts.map((act) => (
+                                                    <FormField
+                                                        key={act.code}
+                                                        control={form.control}
+                                                        name="acts"
+                                                        render={({ field }) => (
+                                                            <FormItem
+                                                                key={act.code}
+                                                                className="flex flex-row items-start space-x-3 space-y-0"
+                                                            >
+                                                                <FormControl>
+                                                                    <Checkbox
+                                                                        checked={field.value?.includes(act.code)}
+                                                                        onCheckedChange={(checked) => {
+                                                                            return checked
+                                                                                ? field.onChange([...(field.value || []), act.code])
+                                                                                : field.onChange(
+                                                                                    field.value?.filter(
+                                                                                        (value) => value !== act.code
+                                                                                    )
+                                                                                )
+                                                                        }}
+                                                                    />
+                                                                </FormControl>
+                                                                <FormLabel className="font-normal">
+                                                                    {act.designation} ({act.code})
+                                                                </FormLabel>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                    />
               </div>
+            </div>
           </ScrollArea>
             <DialogFooter className="pt-4">
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit">Save</Button>
+              {step === 1 && (
+                  <>
+                    <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button type="button" onClick={handleNext}>Next</Button>
+                  </>
+              )}
+               {step === 2 && (
+                <>
+                  <Button type="button" variant="ghost" onClick={() => setStep(1)}>
+                    Back
+                  </Button>
+                  <Button type="submit">Save</Button>
+                </>
+              )}
             </DialogFooter>
           </form>
         </Form>
