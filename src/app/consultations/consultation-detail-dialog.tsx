@@ -29,16 +29,23 @@ export function ConsultationDetailDialog({
   open,
   onOpenChange,
 }: ConsultationDetailDialogProps) {
-  const { actSections } = useAppContext();
+  const { actChapters } = useAppContext();
   const patient = consultation.patient;
+
+  const allActs = useMemo(() => {
+    return actChapters.flatMap(chapter => 
+        chapter.sections.flatMap(section => 
+            section.groups.flatMap(group => group.acts)
+        )
+    );
+  }, [actChapters]);
 
   const selectedActs = useMemo(() => {
     if (!consultation.acts || consultation.acts.length === 0) {
       return [];
     }
-    const allActs = actSections.flatMap(section => section.acts);
     return allActs.filter(act => consultation.acts?.includes(act.code));
-  }, [consultation.acts, actSections]);
+  }, [consultation.acts, allActs]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {

@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -12,6 +13,7 @@ import {
   Home,
   Users,
   Stethoscope,
+  BookText,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
@@ -23,6 +25,7 @@ export function Sidebar() {
     { href: "/", icon: Home, label: "Dashboard" },
     { href: "/patients", icon: Users, label: "Patients" },
     { href: "/consultations", icon: Stethoscope, label: "Consultations" },
+    { href: "/acts", icon: BookText, label: "Medical Acts" },
   ];
 
   return (

@@ -37,11 +37,23 @@ export interface Act {
   code: string;
   designation: string;
   cotation: string;
-  honoraire: number;
+  honoraire: number | null;
+  notes?: string;
+}
+
+export interface ActGroup {
+    title: string;
+    acts: Act[];
 }
 
 export interface ActSection {
-  id: string;
-  title: string;
-  acts: Act[];
+    id: string;
+    title: string;
+    groups: ActGroup[];
+}
+
+export interface ActChapter {
+    id: string;
+    title: string;
+    sections: ActSection[];
 }

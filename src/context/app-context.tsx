@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Patient, Consultation, ActSection, Act } from '@/lib/types';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { Patient, Consultation, ActChapter, Act, ActSection, ActGroup } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { db, auth, onAuthStateChanged, signOut, User } from "@/lib/firebase";
 import { 
@@ -14,7 +14,8 @@ import {
   doc, 
   writeBatch, 
   query, 
-  where 
+  where,
+  runTransaction
 } from "firebase/firestore";
 import { useRouter } from 'next/navigation';
 
@@ -24,7 +25,7 @@ interface AppContextType {
   signOutUser: () => void;
   patients: Patient[];
   consultations: Consultation[];
-  actSections: ActSection[];
+  actChapters: ActChapter[];
   isLoading: boolean;
   addPatient: (patient: Omit<Patient, 'id' | 'createdAt'>) => Promise<void>;
   updatePatient: (patient: Patient) => Promise<void>;
@@ -33,6 +34,9 @@ interface AppContextType {
   updateConsultation: (consultation: Consultation) => Promise<void>;
   deleteConsultation: (consultationId: string) => Promise<void>;
   getPatientById: (patientId: string) => Patient | undefined;
+  addAct: (chapterId: string, sectionId: string, groupTitle: string, act: Omit<Act, 'id'>) => Promise<void>;
+  updateAct: (chapterId: string, sectionId: string, groupTitle: string, act: Act) => Promise<void>;
+  deleteAct: (chapterId: string, sectionId: string, groupTitle: string, actCode: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -42,10 +46,63 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
-  const [actSections, setActSections] = useState<ActSection[]>([]);
+  const [actChapters, setActChapters] = useState<ActChapter[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+
+  const fetchActData = useCallback(async () => {
+    if (!db) return;
+    setDataLoading(true);
+    try {
+        const chaptersCollection = collection(db, 'actChapters');
+        const chaptersSnapshot = await getDocs(chaptersCollection);
+        
+        const chaptersListPromises = chaptersSnapshot.docs.map(async (chapterDoc) => {
+            const sectionsCollection = collection(db, 'actChapters', chapterDoc.id, 'sections');
+            const sectionsSnapshot = await getDocs(sectionsCollection);
+            
+            const sectionsListPromises = sectionsSnapshot.docs.map(async (sectionDoc) => {
+                const groupsCollection = collection(db, 'actChapters', chapterDoc.id, 'sections', sectionDoc.id, 'groups');
+                const groupsSnapshot = await getDocs(groupsCollection);
+                
+                const groupsList = groupsSnapshot.docs.map(groupDoc => {
+                    const groupData = groupDoc.data();
+                    return {
+                        title: groupData.title,
+                        acts: groupData.acts || []
+                    } as ActGroup;
+                });
+
+                return {
+                    id: sectionDoc.id,
+                    title: sectionDoc.data().title,
+                    groups: groupsList,
+                } as ActSection;
+            });
+
+            const sectionsList = await Promise.all(sectionsListPromises);
+
+            return {
+                id: chapterDoc.id,
+                title: chapterDoc.data().title,
+                sections: sectionsList,
+            } as ActChapter;
+        });
+
+        const chaptersList = await Promise.all(chaptersListPromises);
+        setActChapters(chaptersList);
+    } catch (error) {
+        console.error("Error fetching act data:", error);
+        toast({
+          variant: "destructive",
+          title: "Error Fetching Acts",
+          description: "Could not load medical acts data.",
+        });
+    } finally {
+        setDataLoading(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
     if (!auth) {
@@ -65,7 +122,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (!authLoading) setDataLoading(false);
       setPatients([]);
       setConsultations([]);
-      setActSections([]);
+      setActChapters([]);
       return;
     }
 
@@ -82,21 +139,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const consultationsList = consultationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Consultation));
         setConsultations(consultationsList);
 
-        const actSectionsCollection = collection(db, 'actSections');
-        const actSectionsSnapshot = await getDocs(actSectionsCollection);
-        const actSectionsListPromises = actSectionsSnapshot.docs.map(async (sectionDoc) => {
-            const sectionData = sectionDoc.data();
-            const actsCollection = collection(db, 'actSections', sectionDoc.id, 'acts');
-            const actsSnapshot = await getDocs(actsCollection);
-            const actsList = actsSnapshot.docs.map(actDoc => ({ ...actDoc.data() } as Act));
-            return {
-                id: sectionDoc.id,
-                title: sectionData.title,
-                acts: actsList,
-            } as ActSection;
-        });
-        const actSectionsList = await Promise.all(actSectionsListPromises);
-        setActSections(actSectionsList);
+        await fetchActData();
 
       } catch (error) {
         console.error("Error fetching data from Firestore:", error);
@@ -111,7 +154,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     fetchData();
-  }, [user, toast, authLoading]);
+  }, [user, toast, authLoading, fetchActData]);
   
   const signOutUser = async () => {
     if (!auth) return;
@@ -220,6 +263,91 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return patients.find(p => p.id === patientId);
   }
 
+  const runActTransaction = async (chapterId: string, sectionId: string, groupTitle: string, updateLogic: (group: ActGroup) => ActGroup | null) => {
+    if (!db) throw new Error("Database not initialized");
+
+    const groupsQuery = query(
+        collection(db, `actChapters/${chapterId}/sections/${sectionId}/groups`),
+        where("title", "==", groupTitle)
+    );
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const groupSnapshot = await getDocs(groupsQuery);
+            if (groupSnapshot.empty) {
+                // If group doesn't exist for an "add" operation, create it.
+                const newGroupRef = doc(collection(db, `actChapters/${chapterId}/sections/${sectionId}/groups`));
+                const newGroupData = { title: groupTitle, acts: [] };
+                const updatedGroup = updateLogic(newGroupData);
+                if (updatedGroup) {
+                    transaction.set(newGroupRef, updatedGroup);
+                }
+                return;
+            }
+
+            const groupDoc = groupSnapshot.docs[0];
+            const groupRef = groupDoc.ref;
+            const groupData = groupDoc.data() as ActGroup;
+            const updatedGroup = updateLogic(groupData);
+
+            if (updatedGroup) {
+                transaction.update(groupRef, { acts: updatedGroup.acts });
+            } else {
+                // If updateLogic returns null, it means delete the group if empty
+                if(groupData.acts.length === 1) { // Deleting the last act
+                    transaction.delete(groupRef);
+                }
+            }
+        });
+        await fetchActData(); // Refresh data from Firestore
+    } catch (error) {
+        console.error("Transaction failed: ", error);
+        throw error;
+    }
+  };
+
+  const addAct = async (chapterId: string, sectionId: string, groupTitle: string, act: Act) => {
+    try {
+        await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
+            const newActs = [...group.acts, act];
+            return { ...group, acts: newActs };
+        });
+        toast({ title: "Success", description: "Medical act added successfully." });
+    } catch (e) {
+        toast({ variant: "destructive", title: "Error", description: "Could not add medical act." });
+    }
+  };
+
+  const updateAct = async (chapterId: string, sectionId: string, groupTitle: string, updatedAct: Act) => {
+     try {
+        await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
+            const actIndex = group.acts.findIndex(a => a.code === updatedAct.code);
+            if (actIndex === -1) throw new Error("Act not found");
+            const newActs = [...group.acts];
+            newActs[actIndex] = updatedAct;
+            return { ...group, acts: newActs };
+        });
+        toast({ title: "Success", description: "Medical act updated successfully." });
+    } catch (e) {
+        toast({ variant: "destructive", title: "Error", description: "Could not update medical act." });
+    }
+  };
+
+  const deleteAct = async (chapterId: string, sectionId: string, groupTitle: string, actCode: string) => {
+     try {
+        await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
+            const newActs = group.acts.filter(a => a.code !== actCode);
+            if (newActs.length === 0) {
+              return null; // Signal to delete the group if it becomes empty
+            }
+            return { ...group, acts: newActs };
+        });
+        toast({ title: "Success", description: "Medical act deleted successfully." });
+    } catch (e) {
+        toast({ variant: "destructive", title: "Error", description: "Could not delete medical act." });
+    }
+  };
+
   return (
     <AppContext.Provider value={{ 
       user,
@@ -227,7 +355,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       signOutUser,
       patients, 
       consultations, 
-      actSections,
+      actChapters,
       isLoading: authLoading || dataLoading,
       addPatient, 
       updatePatient, 
@@ -236,6 +364,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       updateConsultation,
       deleteConsultation,
       getPatientById,
+      addAct,
+      updateAct,
+      deleteAct,
     }}>
       {children}
     </AppContext.Provider>

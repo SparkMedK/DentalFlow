@@ -19,12 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -39,11 +33,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Consultation } from "@/lib/types";
 import { useAppContext } from "@/context/app-context";
-import React from "react";
+import React, { useMemo } from "react";
 import Select from "react-select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 const consultationSchema = z.object({
   patientId: z.string().min(1, "Patient is required."),
@@ -59,7 +54,6 @@ const consultationSchema = z.object({
 
 type ConsultationFormValues = z.infer<typeof consultationSchema>;
 
-
 interface ConsultationFormProps {
   consultation?: Partial<Consultation>;
   children?: React.ReactNode;
@@ -73,8 +67,9 @@ export function ConsultationForm({
   open,
   onOpenChange,
 }: ConsultationFormProps) {
-  const { patients, addConsultation, updateConsultation, actSections } = useAppContext();
+  const { patients, addConsultation, updateConsultation, actChapters } = useAppContext();
   const [step, setStep] = React.useState(1);
+  const [selectedSection, setSelectedSection] = React.useState<any>(null);
 
   const form = useForm<z.infer<typeof consultationSchema>>({
     resolver: zodResolver(consultationSchema),
@@ -96,6 +91,7 @@ export function ConsultationForm({
   
   React.useEffect(() => {
     setStep(1);
+    setSelectedSection(null);
     const defaultValues = {
       patientId: "",
       date: new Date().toISOString().split('T')[0],
@@ -149,6 +145,39 @@ export function ConsultationForm({
 
   const isEditing = !!consultation?.id;
 
+  const allActs = useMemo(() => {
+    return actChapters.flatMap(chapter => 
+        chapter.sections.flatMap(section => 
+            section.groups.flatMap(group => group.acts)
+        )
+    );
+  }, [actChapters]);
+
+  const sectionOptions = useMemo(() => {
+    return actChapters.flatMap(chapter => 
+        chapter.sections.map(section => ({
+            value: section.id,
+            label: `${chapter.title} - ${section.title}`,
+            originalSection: section
+        }))
+    );
+  }, [actChapters]);
+
+  const actOptions = useMemo(() => {
+    if (!selectedSection) return [];
+    return selectedSection.originalSection.groups.flatMap((group: any) => 
+        group.acts.map((act: any) => ({
+            value: act.code,
+            label: `${act.designation} (${act.code})`
+        }))
+    );
+  }, [selectedSection]);
+
+  const selectedActCodes = form.watch("acts") || [];
+  const selectedActs = useMemo(() => {
+    return allActs.filter(act => selectedActCodes.includes(act.code));
+  }, [selectedActCodes, allActs]);
+
   const selectStyles = {
     control: (base: any, state: any) => ({
       ...base,
@@ -186,6 +215,22 @@ export function ConsultationForm({
     placeholder: (base: any) => ({
       ...base,
       color: 'hsl(var(--muted-foreground))',
+    }),
+    multiValue: (base: any) => ({
+        ...base,
+        backgroundColor: 'hsl(var(--secondary))',
+    }),
+    multiValueLabel: (base: any) => ({
+        ...base,
+        color: 'hsl(var(--secondary-foreground))',
+    }),
+    multiValueRemove: (base: any) => ({
+        ...base,
+        color: 'hsl(var(--secondary-foreground))',
+        ':hover': {
+            backgroundColor: 'hsl(var(--destructive))',
+            color: 'hsl(var(--destructive-foreground))',
+        },
     }),
   };
 
@@ -343,61 +388,52 @@ export function ConsultationForm({
                 </div>
               </div>
 
-              <div className={cn("space-y-4", step !== 2 && "hidden")}>
-                <FormField
-                    control={form.control}
-                    name="acts"
-                    render={() => (
-                        <FormItem>
-                            <div className="mb-4">
-                                <FormLabel className="text-base">Medical Acts</FormLabel>
-                            </div>
-                            <Accordion type="multiple" className="w-full">
-                                {actSections.map((section) => (
-                                    <AccordionItem value={section.id} key={section.id}>
-                                        <AccordionTrigger>{section.title}</AccordionTrigger>
-                                        <AccordionContent>
-                                            <div className="space-y-2">
-                                                {section.acts.map((act) => (
-                                                    <FormField
-                                                        key={act.code}
-                                                        control={form.control}
-                                                        name="acts"
-                                                        render={({ field }) => (
-                                                            <FormItem
-                                                                key={act.code}
-                                                                className="flex flex-row items-start space-x-3 space-y-0"
-                                                            >
-                                                                <FormControl>
-                                                                    <Checkbox
-                                                                        checked={field.value?.includes(act.code)}
-                                                                        onCheckedChange={(checked) => {
-                                                                            return checked
-                                                                                ? field.onChange([...(field.value || []), act.code])
-                                                                                : field.onChange(
-                                                                                    field.value?.filter(
-                                                                                        (value) => value !== act.code
-                                                                                    )
-                                                                                )
-                                                                        }}
-                                                                    />
-                                                                </FormControl>
-                                                                <FormLabel className="font-normal">
-                                                                    {act.designation} ({act.code})
-                                                                </FormLabel>
-                                                            </FormItem>
-                                                        )}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </AccordionContent>
-                                    </AccordionItem>
-                                ))}
-                            </Accordion>
-                            <FormMessage />
-                        </FormItem>
-                    )}
+              <div className={cn("space-y-6", step !== 2 && "hidden")}>
+                <div className="space-y-2">
+                    <FormLabel>Section</FormLabel>
+                    <Select
+                        instanceId="section-select"
+                        options={sectionOptions}
+                        value={selectedSection}
+                        onChange={(option) => setSelectedSection(option)}
+                        placeholder="Select or search for a section..."
+                        styles={selectStyles}
                     />
+                </div>
+                
+                {selectedSection && (
+                     <FormField
+                        control={form.control}
+                        name="acts"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Medical Acts</FormLabel>
+                            <Select
+                                instanceId="act-select"
+                                isMulti
+                                options={actOptions}
+                                value={actOptions.filter(option => field.value?.includes(option.value))}
+                                onChange={(options) => field.onChange(options.map(option => option.value))}
+                                placeholder="Select one or more acts..."
+                                styles={selectStyles}
+                            />
+                             <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                )}
+                {selectedActs.length > 0 && (
+                    <div className="space-y-2">
+                        <FormLabel>Selected Acts</FormLabel>
+                        <div className="flex flex-wrap gap-2 rounded-md border p-2 min-h-[40px]">
+                            {selectedActs.map(act => (
+                                <Badge key={act.code} variant="secondary" className="text-sm py-1">
+                                    {act.designation}
+                                </Badge>
+                            ))}
+                        </div>
+                    </div>
+                )}
               </div>
             </div>
           </ScrollArea>
