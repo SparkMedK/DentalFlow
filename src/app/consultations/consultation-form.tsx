@@ -282,58 +282,61 @@ export function ConsultationForm({
                   />
               </div>
 
-              <FormField
-                control={form.control}
-                name="reason"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Reason for Visit</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="E.g., routine check-up, toothache..."
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="treatmentPlan"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Treatment Plan</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="E.g., filling, extraction, cleaning..."
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="reason"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Reason for Visit</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="E.g., routine check-up, toothache..."
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="treatmentPlan"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Treatment Plan</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="E.g., filling, extraction, cleaning..."
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="followUpActions"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Follow-up Actions</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="E.g., schedule next appointment, prescription details..."
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="followUpActions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Follow-up Actions</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="E.g., schedule next appointment..."
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                   control={form.control}
