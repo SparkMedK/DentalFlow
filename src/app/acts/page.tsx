@@ -1,30 +1,16 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAppContext } from "@/context/app-context";
-import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ActForm } from "./act-form";
-import { Act } from "@/lib/types";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { ActsTable } from "./acts-table";
+import type { Act } from "@/lib/types";
 
 export default function ActsPage() {
   const { actChapters, isLoading, deleteAct } = useAppContext();
@@ -32,6 +18,9 @@ export default function ActsPage() {
   const [formMode, setFormMode] = useState<"add" | "edit">("add");
   const [currentAct, setCurrentAct] = useState<Act | undefined>(undefined);
   const [currentContext, setCurrentContext] = useState<{ chapterId: string; sectionId: string; groupTitle: string } | null>(null);
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSectionId, setSelectedSectionId] = useState("all");
 
   const handleAddClick = (chapterId: string, sectionId: string, groupTitle: string) => {
     setFormMode("add");
@@ -47,9 +36,49 @@ export default function ActsPage() {
     setIsFormOpen(true);
   };
   
-  const handleDeleteClick = (chapterId: string, sectionId: string, groupTitle: string, actCode: string) => {
-    deleteAct(chapterId, sectionId, groupTitle, actCode);
+  const handleDeleteClick = (actCode: string) => {
+    if (!currentContext) return;
+    deleteAct(currentContext.chapterId, currentContext.sectionId, currentContext.groupTitle, actCode);
   };
+  
+  const sectionOptions = useMemo(() => {
+    return actChapters.flatMap(chapter => 
+        chapter.sections.map(section => ({
+            value: section.id,
+            label: `${chapter.title} - ${section.title}`,
+        }))
+    );
+  }, [actChapters]);
+
+  const filteredChapters = useMemo(() => {
+    let chapters = actChapters;
+
+    if (selectedSectionId !== 'all') {
+      chapters = chapters.map(chapter => ({
+        ...chapter,
+        sections: chapter.sections.filter(section => section.id === selectedSectionId)
+      })).filter(chapter => chapter.sections.length > 0);
+    }
+    
+    if (searchQuery) {
+        chapters = chapters.map(chapter => ({
+            ...chapter,
+            sections: chapter.sections.map(section => ({
+                ...section,
+                groups: section.groups.map(group => ({
+                    ...group,
+                    acts: group.acts.filter(act => 
+                        act.designation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        act.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        act.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                })).filter(group => group.acts.length > 0)
+            })).filter(section => section.groups.length > 0)
+        })).filter(chapter => chapter.sections.length > 0);
+    }
+
+    return chapters;
+  }, [actChapters, searchQuery, selectedSectionId]);
 
   if (isLoading) {
     return (
@@ -75,76 +104,69 @@ export default function ActsPage() {
         <Card>
             <CardHeader>
                 <CardTitle>Acts Catalog</CardTitle>
-                <CardDescription>Browse and manage the medical acts catalog.</CardDescription>
+                <CardDescription>Browse, search, and manage the medical acts catalog.</CardDescription>
             </CardHeader>
             <CardContent>
-                <Accordion type="multiple" className="w-full">
-                {actChapters.map((chapter) => (
-                    <AccordionItem value={chapter.id} key={chapter.id}>
-                    <AccordionTrigger className="text-lg font-semibold">{chapter.title}</AccordionTrigger>
-                    <AccordionContent>
-                        <Accordion type="multiple" className="w-full pl-4">
-                        {chapter.sections.map((section) => (
-                            <AccordionItem value={section.id} key={section.id}>
-                            <AccordionTrigger className="text-md font-medium">{section.title}</AccordionTrigger>
-                            <AccordionContent>
-                                {section.groups.length > 0 ? (
-                                    section.groups.map((group, groupIndex) => (
-                                    <div key={groupIndex} className="py-2 pl-4">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <h4 className="font-semibold text-sm">{group.title || 'General Acts'}</h4>
-                                             <Button variant="ghost" size="sm" onClick={() => handleAddClick(chapter.id, section.id, group.title)}>
-                                                <Plus className="mr-2 h-4 w-4" /> Add Act
-                                            </Button>
-                                        </div>
-                                        <div className="space-y-2">
-                                        {group.acts.map((act) => (
-                                            <div key={act.code} className="flex justify-between items-center p-2 rounded-md border">
-                                                <div>
-                                                    <p className="font-medium">{act.designation} <span className="text-muted-foreground text-xs">({act.code})</span></p>
-                                                    <p className="text-sm text-muted-foreground">Cotation: {act.cotation} | Honoraire: {act.honoraire?.toFixed(3) ?? 'N/A'} TND</p>
-                                                    {act.notes && <p className="text-xs text-muted-foreground italic">Note: {act.notes}</p>}
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(act, chapter.id, section.id, group.title)}>
-                                                        <Pencil className="h-4 w-4"/>
+                <div className="flex items-center gap-4 py-4">
+                    <Input 
+                        placeholder="Search by code, designation, or notes..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="max-w-sm"
+                    />
+                    <Select value={selectedSectionId} onValueChange={setSelectedSectionId}>
+                        <SelectTrigger className="w-[400px]">
+                            <SelectValue placeholder="Filter by section..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Sections</SelectItem>
+                            {sectionOptions.map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-6">
+                    {filteredChapters.map(chapter => (
+                        <div key={chapter.id}>
+                            <h3 className="text-xl font-bold tracking-tight mb-2">{chapter.title}</h3>
+                            {chapter.sections.map(section => (
+                                <div key={section.id} className="pl-4 space-y-4 border-l-2 border-border ml-2">
+                                    <h4 className="text-lg font-semibold tracking-tight">{section.title}</h4>
+                                    {section.groups.length > 0 ? (
+                                        section.groups.map((group, groupIndex) => (
+                                            <div key={groupIndex} className="pl-4">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <h5 className="font-semibold">{group.title || 'General Acts'}</h5>
+                                                    <Button variant="outline" size="sm" onClick={() => handleAddClick(chapter.id, section.id, group.title)}>
+                                                        <Plus className="mr-2 h-4 w-4" /> Add Act
                                                     </Button>
-                                                     <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                                              <Trash2 className="h-4 w-4" />
-                                                          </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                This action cannot be undone. This will permanently delete the medical act.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={() => handleDeleteClick(chapter.id, section.id, group.title, act.code)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
                                                 </div>
+                                                <ActsTable
+                                                    acts={group.acts}
+                                                    onEdit={(act) => handleEditClick(act, chapter.id, section.id, group.title)}
+                                                    onDelete={(actCode) => {
+                                                        setCurrentContext({ chapterId: chapter.id, sectionId: section.id, groupTitle: group.title });
+                                                        handleDeleteClick(actCode);
+                                                    }}
+                                                />
                                             </div>
-                                        ))}
-                                        </div>
-                                    </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center text-muted-foreground p-4">No groups in this section.</div>
-                                )}
-                            </AccordionContent>
-                            </AccordionItem>
-                        ))}
-                        </Accordion>
-                    </AccordionContent>
-                    </AccordionItem>
-                ))}
-                </Accordion>
+                                        ))
+                                    ) : (
+                                        <p className="text-muted-foreground pl-4">No groups match your search criteria in this section.</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                    {filteredChapters.length === 0 && (
+                        <div className="text-center text-muted-foreground p-8">
+                            No medical acts found matching your criteria.
+                        </div>
+                    )}
+                </div>
             </CardContent>
         </Card>
       </div>
