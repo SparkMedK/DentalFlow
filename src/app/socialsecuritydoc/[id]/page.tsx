@@ -22,17 +22,17 @@ export default function CNAMPreviewPage({ params }: { params: { id: string }}) {
                 setRecord(data);
             } else {
                 // If no data, maybe redirect back or show an error
-                router.push('/test');
+                router.push('/socialsecuritydoc');
             }
         } catch (error) {
             console.error("Failed to parse session storage data", error);
-            router.push('/test');
+            router.push('/socialsecuritydoc');
         }
     }, [params.id, router]);
-    
+    console.log("params : ",params)
     return (
         <div className="flex-1 space-y-8 p-4 md:p-8 pt-6">
-            <Button variant="outline" onClick={() => router.push('/test')}>
+            <Button variant="outline" onClick={() => router.push('/socialsecuritydoc')}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Assurance List
             </Button>

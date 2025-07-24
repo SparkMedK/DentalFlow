@@ -19,7 +19,7 @@ export interface SelectedAssuranceAct {
     act: Act;
 }
 
-export default function TestPage() {
+export default function SocialSecurityDocPage() {
     const { socialSecurityDocuments, addSocialSecurityDocument, isLoading } = useAppContext();
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const router = useRouter();
@@ -42,7 +42,7 @@ export default function TestPage() {
 
     const handleShowPreview = (record: SocialSecurityDocument) => {
         sessionStorage.setItem('cnam-preview-data', JSON.stringify(record));
-        router.push(`/test/${record.id}`);
+        router.push(`/socialsecuritydoc/${record.id}`);
     }
 
     if (isLoading) {

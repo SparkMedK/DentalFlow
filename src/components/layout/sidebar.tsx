@@ -14,6 +14,7 @@ import {
   Users,
   Stethoscope,
   BookText,
+  FileText,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ export function Sidebar() {
     { href: "/patients", icon: Users, label: "Patients" },
     { href: "/consultations", icon: Stethoscope, label: "Consultations" },
     { href: "/acts", icon: BookText, label: "Medical Acts" },
+    { href: "/socialsecuritydoc", icon: FileText, label: "Social Assurance" },
   ];
 
   return (
