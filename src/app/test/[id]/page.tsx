@@ -4,14 +4,13 @@
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import CNAMPreview from "../cnam-preview";
-import { Patient, Consultation } from "@/lib/types";
+import { SocialSecurityDocument } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { AssuranceRecord } from "../columns";
 
 export default function CNAMPreviewPage({ params }: { params: { id: string }}) {
-    const [record, setRecord] = React.useState<AssuranceRecord | null>(null);
+    const [record, setRecord] = React.useState<SocialSecurityDocument | null>(null);
     const router = useRouter();
     
     React.useEffect(() => {

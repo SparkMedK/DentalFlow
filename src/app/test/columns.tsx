@@ -2,8 +2,8 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Patient, Act } from "@/lib/types";
-import { Eye } from "lucide-react";
+import { Patient, Act, SocialSecurityDocument } from "@/lib/types";
+import { Eye, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -13,22 +13,28 @@ import {
 } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { SelectedAssuranceAct } from "./page";
+import { useAppContext } from "@/context/app-context";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-export type AssuranceRecord = {
-  id: string;
-  patient: Patient;
-  acts: SelectedAssuranceAct[];
-  generationDate: string;
-  assuranceType: string;
-};
 
 const ActionsCell = ({
   record,
   onShow,
 }: {
-  record: AssuranceRecord;
-  onShow: (record: AssuranceRecord) => void;
+  record: SocialSecurityDocument;
+  onShow: (record: SocialSecurityDocument) => void;
 }) => {
+  const { deleteSocialSecurityDocument } = useAppContext();
   return (
     <TooltipProvider>
       <div className="flex items-center gap-1">
@@ -47,6 +53,33 @@ const ActionsCell = ({
             <p>Show PDF</p>
           </TooltipContent>
         </Tooltip>
+        <AlertDialog>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Delete Document</span>
+                  </Button>
+              </AlertDialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Delete Document</p>
+            </TooltipContent>
+          </Tooltip>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the social security document.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => deleteSocialSecurityDocument(record.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   );
@@ -55,8 +88,8 @@ const ActionsCell = ({
 export const columns = ({
   onShow,
 }: {
-  onShow: (record: AssuranceRecord) => void;
-}): ColumnDef<AssuranceRecord>[] => [
+  onShow: (record: SocialSecurityDocument) => void;
+}): ColumnDef<SocialSecurityDocument>[] => [
   {
     accessorKey: "patient.name",
     header: "Patient Name",

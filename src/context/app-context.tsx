@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import { Patient, Consultation, ActChapter, Act, ActSection, ActGroup } from '@/lib/types';
+import { Patient, Consultation, ActChapter, Act, ActSection, ActGroup, SocialSecurityDocument } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { db, auth, onAuthStateChanged, signOut, User } from "@/lib/firebase";
 import { 
@@ -26,6 +26,7 @@ interface AppContextType {
   patients: Patient[];
   consultations: Consultation[];
   actChapters: ActChapter[];
+  socialSecurityDocuments: SocialSecurityDocument[];
   isLoading: boolean;
   addPatient: (patient: Omit<Patient, 'id' | 'createdAt'>) => Promise<void>;
   updatePatient: (patient: Patient) => Promise<void>;
@@ -37,6 +38,8 @@ interface AppContextType {
   addAct: (chapterId: string, sectionId: string, groupTitle: string, act: Omit<Act, 'id'>) => Promise<void>;
   updateAct: (chapterId: string, sectionId: string, groupTitle: string, act: Act) => Promise<void>;
   deleteAct: (chapterId: string, sectionId: string, groupTitle: string, actCode: string) => Promise<void>;
+  addSocialSecurityDocument: (doc: Omit<SocialSecurityDocument, 'id'>) => Promise<void>;
+  deleteSocialSecurityDocument: (docId: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -47,13 +50,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [actChapters, setActChapters] = useState<ActChapter[]>([]);
+  const [socialSecurityDocuments, setSocialSecurityDocuments] = useState<SocialSecurityDocument[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
 
   const fetchActData = useCallback(async () => {
     if (!db) return;
-    setDataLoading(true);
     try {
         const chaptersCollection = collection(db, 'actChapters');
         const chaptersSnapshot = await getDocs(chaptersCollection);
@@ -99,8 +102,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           title: "Error Fetching Acts",
           description: "Could not load medical acts data.",
         });
-    } finally {
-        setDataLoading(false);
     }
   }, [toast]);
 
@@ -123,6 +124,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setPatients([]);
       setConsultations([]);
       setActChapters([]);
+      setSocialSecurityDocuments([]);
       return;
     }
 
@@ -138,6 +140,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const consultationsSnapshot = await getDocs(consultationsCollection);
         const consultationsList = consultationsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Consultation));
         setConsultations(consultationsList);
+
+        const ssDocsCollection = collection(db, 'socialSecurityDocuments');
+        const ssDocsSnapshot = await getDocs(ssDocsCollection);
+        const ssDocsList = ssDocsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SocialSecurityDocument));
+        setSocialSecurityDocuments(ssDocsList);
 
         await fetchActData();
 
@@ -348,6 +355,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const addSocialSecurityDocument = async (docData: Omit<SocialSecurityDocument, 'id'>) => {
+    if (!db || !user) return;
+    try {
+      const docRef = await addDoc(collection(db, "socialSecurityDocuments"), docData);
+      setSocialSecurityDocuments(prev => [...prev, { ...docData, id: docRef.id }]);
+      toast({ title: "Success", description: "Social security document created." });
+    } catch (error) {
+      console.error("Error adding social security document:", error);
+      toast({ variant: "destructive", title: "Error", description: "Could not create document." });
+    }
+  };
+
+  const deleteSocialSecurityDocument = async (docId: string) => {
+    if (!db || !user) return;
+    const ssDocRef = doc(db, "socialSecurityDocuments", docId);
+    try {
+      await deleteDoc(ssDocRef);
+      setSocialSecurityDocuments(prev => prev.filter(d => d.id !== docId));
+      toast({ title: "Success", description: "Social security document deleted." });
+    } catch (error) {
+      console.error("Error deleting social security document:", error);
+      toast({ variant: "destructive", title: "Error", description: "Could not delete document." });
+    }
+  };
+
   return (
     <AppContext.Provider value={{ 
       user,
@@ -356,6 +388,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       patients, 
       consultations, 
       actChapters,
+      socialSecurityDocuments,
       isLoading: authLoading || dataLoading,
       addPatient, 
       updatePatient, 
@@ -367,6 +400,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       addAct,
       updateAct,
       deleteAct,
+      addSocialSecurityDocument,
+      deleteSocialSecurityDocument,
     }}>
       {children}
     </AppContext.Provider>

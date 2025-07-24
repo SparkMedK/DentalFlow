@@ -3,10 +3,10 @@
 
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { useEffect, useState } from 'react';
-import { AssuranceRecord } from './columns';
+import { SocialSecurityDocument } from '@/lib/types';
 import { format } from 'date-fns';
 
-export default function CNAMPreview({ record }: { record: AssuranceRecord }) {
+export default function CNAMPreview({ record }: { record: SocialSecurityDocument }) {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -46,20 +46,20 @@ export default function CNAMPreview({ record }: { record: AssuranceRecord }) {
       const lineHeight = 18; // space between each act line
       
       acts.slice(0, 10).forEach(selectedAct => { // Limit to 10 acts to avoid overflow
-          const { act, date, dent, cps } = selectedAct;
+          const { date, dent, cps, code, cotation, honoraire } = selectedAct;
           
-          page.drawText(format(date, 'dd/MM/yy'), { x: 45, y: yPosition, size: 10, font });
-          page.drawText(act.code || '', { x: 100, y: yPosition, size: 9, font });
+          page.drawText(format(new Date(date), 'dd/MM/yy'), { x: 45, y: yPosition, size: 10, font });
+          page.drawText(code || '', { x: 100, y: yPosition, size: 9, font });
           page.drawText(dent || '', { x: 200, y: yPosition, size: 10, font });
-          page.drawText(act.cotation || '', { x: 230, y: yPosition, size: 10, font });
-          page.drawText(act.honoraire?.toFixed(3) || '0.000', { x: 280, y: yPosition, size: 10, font });
+          page.drawText(cotation || '', { x: 230, y: yPosition, size: 10, font });
+          page.drawText(honoraire?.toFixed(3) || '0.000', { x: 280, y: yPosition, size: 10, font });
           // Assuming CPS goes somewhere, example position:
           page.drawText(cps || '', { x: 360, y: yPosition, size: 10, font });
           
           yPosition -= lineHeight;
       });
 
-      const totalHonoraire = acts.reduce((sum, item) => sum + (item.act.honoraire || 0), 0);
+      const totalHonoraire = acts.reduce((sum, item) => sum + (item.honoraire || 0), 0);
       page.drawText(totalHonoraire.toFixed(3), { x: 280, y: 328, size: 11, font });
 
 

@@ -57,3 +57,19 @@ export interface ActChapter {
     title: string;
     sections: ActSection[];
 }
+
+export interface SocialSecurityDocument {
+  id: string;
+  patient: Patient;
+  acts: {
+    code: string;
+    designation: string;
+    cotation: string;
+    honoraire: number | null;
+    dent: string;
+    cps: string;
+    date: string;
+  }[];
+  generationDate: string;
+  assuranceType: string;
+}

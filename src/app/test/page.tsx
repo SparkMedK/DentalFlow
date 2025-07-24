@@ -5,11 +5,12 @@ import * as React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GenerateAssuranceDialog } from "./generate-assurance-dialog";
 import { Button } from "@/components/ui/button";
-import { Patient, Act } from "@/lib/types";
+import { Patient, Act, SocialSecurityDocument } from "@/lib/types";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
-import type { AssuranceRecord } from "./columns";
 import { useRouter } from "next/navigation";
+import { useAppContext } from "@/context/app-context";
+import { Loader2 } from "lucide-react";
 
 export interface SelectedAssuranceAct {
     date: Date;
@@ -19,25 +20,37 @@ export interface SelectedAssuranceAct {
 }
 
 export default function TestPage() {
+    const { socialSecurityDocuments, addSocialSecurityDocument, isLoading } = useAppContext();
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-    const [assuranceRecords, setAssuranceRecords] = React.useState<AssuranceRecord[]>([]);
     const router = useRouter();
     
     const handleSelectionsComplete = (patient: Patient, acts: SelectedAssuranceAct[]) => {
-        const newRecord: AssuranceRecord = {
-            id: `${patient.id}-${new Date().getTime()}`,
+        const newRecord: Omit<SocialSecurityDocument, 'id'> = {
             patient,
-            acts,
+            acts: acts.map(a => ({ 
+                ...a.act, 
+                dent: a.dent, 
+                cps: a.cps, 
+                date: a.date.toISOString() 
+            })),
             assuranceType: "CNAM",
             generationDate: new Date().toISOString(),
         };
-        setAssuranceRecords(prev => [newRecord, ...prev]);
+        addSocialSecurityDocument(newRecord);
         setIsDialogOpen(false);
     };
 
-    const handleShowPreview = (record: AssuranceRecord) => {
+    const handleShowPreview = (record: SocialSecurityDocument) => {
         sessionStorage.setItem('cnam-preview-data', JSON.stringify(record));
         router.push(`/test/${record.id}`);
+    }
+
+    if (isLoading) {
+      return (
+        <div className="flex h-full flex-1 items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      );
     }
 
     return (
@@ -60,7 +73,7 @@ export default function TestPage() {
                          </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <DataTable columns={columns({ onShow: handleShowPreview })} data={assuranceRecords} />
+                        <DataTable columns={columns({ onShow: handleShowPreview })} data={socialSecurityDocuments} />
                     </CardContent>
                 </Card>
             </div>
