@@ -27,7 +27,7 @@ export function Sidebar() {
     { href: "/patients", icon: Users, label: "Patients" },
     { href: "/consultations", icon: Stethoscope, label: "Consultations" },
     { href: "/acts", icon: BookText, label: "Medical Acts" },
-    { href: "/socialsecuritydoc", icon: FileText, label: "Social Assurance" },
+    { href: "/socialsecuritydoc", icon: FileText, label: "Social Security Documents" },
   ];
 
   return (
