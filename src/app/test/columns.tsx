@@ -2,7 +2,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { Patient, Consultation } from "@/lib/types";
+import { Patient, Act } from "@/lib/types";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,11 +12,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { format } from "date-fns";
+import { SelectedAssuranceAct } from "./page";
 
 export type AssuranceRecord = {
   id: string;
   patient: Patient;
-  consultation: Consultation;
+  acts: SelectedAssuranceAct[];
   generationDate: string;
   assuranceType: string;
 };
@@ -62,10 +63,8 @@ export const columns = ({
     cell: ({ row }) => `${row.original.patient.firstName} ${row.original.patient.lastName}`,
   },
   {
-    accessorKey: "consultation.date",
-    header: "Consultation Date",
-    cell: ({ row }) =>
-      format(new Date(row.original.consultation.date), "MM/dd/yyyy"),
+    header: "Acts Performed",
+    cell: ({ row }) => row.original.acts.length,
   },
   {
     accessorKey: "generationDate",

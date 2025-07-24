@@ -8,10 +8,10 @@ import { Patient, Consultation } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { AssuranceRecord } from "../columns";
 
 export default function CNAMPreviewPage({ params }: { params: { id: string }}) {
-    const [patient, setPatient] = React.useState<Patient | null>(null);
-    const [consultation, setConsultation] = React.useState<Consultation | null>(null);
+    const [record, setRecord] = React.useState<AssuranceRecord | null>(null);
     const router = useRouter();
     
     React.useEffect(() => {
@@ -20,8 +20,7 @@ export default function CNAMPreviewPage({ params }: { params: { id: string }}) {
             if (dataString) {
                 const data = JSON.parse(dataString);
                 // We could validate the ID here, but for now we'll trust the session data
-                setPatient(data.patient);
-                setConsultation(data.consultation);
+                setRecord(data);
             } else {
                 // If no data, maybe redirect back or show an error
                 router.push('/test');
@@ -42,12 +41,12 @@ export default function CNAMPreviewPage({ params }: { params: { id: string }}) {
                 <CardHeader>
                     <CardTitle>CNAM PDF Preview</CardTitle>
                     <CardDescription>
-                        This is a preview of the generated CNAM form for {patient ? `${patient.firstName} ${patient.lastName}` : ""}.
+                        This is a preview of the generated CNAM form for {record?.patient ? `${record.patient.firstName} ${record.patient.lastName}` : ""}.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {patient && consultation ? (
-                        <CNAMPreview patient={patient} consultation={consultation} />
+                    {record ? (
+                        <CNAMPreview record={record} />
                     ) : (
                         <div className="flex items-center justify-center h-[60vh] bg-muted rounded-md">
                             <p className="text-muted-foreground">Loading preview...</p>
