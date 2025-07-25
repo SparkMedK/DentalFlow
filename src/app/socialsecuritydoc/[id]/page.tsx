@@ -9,7 +9,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
-export default function CNAMPreviewPage({ params }: { params: { id: string }}) {
+export default function CNAMPreviewPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
+    const params = React.use(paramsPromise); // Unwrap the params Promise
     const [record, setRecord] = React.useState<SocialSecurityDocument | null>(null);
     const router = useRouter();
     
@@ -45,7 +46,7 @@ export default function CNAMPreviewPage({ params }: { params: { id: string }}) {
                 </CardHeader>
                 <CardContent>
                     {record ? (
-                        <CNAMPreview record={record} />
+                        <CNAMPreview record={record} /> 
                     ) : (
                         <div className="flex items-center justify-center h-[60vh] bg-muted rounded-md">
                             <p className="text-muted-foreground">Loading preview...</p>
