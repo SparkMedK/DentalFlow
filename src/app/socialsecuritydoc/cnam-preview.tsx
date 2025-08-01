@@ -25,14 +25,14 @@ export default function CNAMPreview({ record }: { record: SocialSecurityDocument
           }
           return res.arrayBuffer();
         });
-
+        console.log('record ', record)
         const { patient, acts } = record;
         const pdfDoc = await PDFDocument.load(formBytes);
         const page = pdfDoc.getPage(0);
         const pageConsultation = pdfDoc.getPage(1);
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-        console.log("Generating PDF...", patient, acts, patient.socialSecurity)
+        console.log("Generating PDF...", patient, acts)
         // --- Patient Info ---!
         let yPosition = 490;
         let yConsultation = 410;
@@ -77,10 +77,10 @@ export default function CNAMPreview({ record }: { record: SocialSecurityDocument
 
 
         acts.slice(0, 10).forEach(selectedAct => {
-            const { date, dent, cps, code, cotation, honoraire } = selectedAct;
+            const { date, dent, cps, code, cotation, honoraire, sectionTitle } = selectedAct;
             // --- Consultation Info ---
             pageConsultation.drawText(format(new Date(date), 'dd/MM/yy'), { x: 65, y: yConsultation, size: 10, font });
-            pageConsultation.drawText('CD', { x: 115, y: yConsultation, size: 10, font });
+            pageConsultation.drawText(sectionTitle, { x: 115, y: yConsultation, size: 8, font });
             pageConsultation.drawText('50.000', { x: 145, y: yConsultation, size: 10, font });
             pageConsultation.drawText(cps || '', { x: 205, y: yConsultation, size: 9, font });
 
@@ -94,10 +94,6 @@ export default function CNAMPreview({ record }: { record: SocialSecurityDocument
             yPosition -= lineHeight;
 
           });
-
-        const totalHonoraire = acts.reduce((sum, item) => sum + (item.honoraire || 0), 0);
-        page.drawText("Total = "+totalHonoraire.toFixed(3), { x: 245, y: 340, size: 11, font });
-
 
 
         const pdfBytes = await pdfDoc.save();

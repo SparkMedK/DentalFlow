@@ -72,6 +72,11 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
     const sections = React.useMemo(() => {
         return actChapters.flatMap(chapter => chapter.sections);
     }, [actChapters]);
+    
+    const currentSectionTitle = React.useMemo(() => {
+        return sections.find(s => s.id === selectedSectionId)?.title || '';
+    }, [sections, selectedSectionId]);
+
 
     const displayedActs = React.useMemo(() => {
         if (!selectedSectionId) return [];
@@ -95,7 +100,7 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
             if (isSelected) {
                 return prev.filter(a => a.act.code !== act.code);
             } else {
-                return [...prev, { date: new Date(), dent: '', cps: '', act }];
+                return [...prev, { date: new Date(), dent: '', cps: '', act, sectionTitle: currentSectionTitle }];
             }
         });
     };

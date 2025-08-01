@@ -17,6 +17,7 @@ export interface SelectedAssuranceAct {
     dent: string;
     cps: string;
     act: Act;
+    sectionTitle: string;
 }
 
 export default function SocialSecurityDocPage() {
@@ -31,7 +32,8 @@ export default function SocialSecurityDocPage() {
                 ...a.act, 
                 dent: a.dent, 
                 cps: a.cps, 
-                date: a.date.toISOString() 
+                date: a.date.toISOString(),
+                sectionTitle: a.sectionTitle
             })),
             assuranceType: "CNAM",
             generationDate: new Date().toISOString(),

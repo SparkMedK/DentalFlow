@@ -69,6 +69,7 @@ export interface SocialSecurityDocument {
     dent: string;
     cps: string;
     date: string;
+    sectionTitle: string;
   }[];
   generationDate: string;
   assuranceType: string;
