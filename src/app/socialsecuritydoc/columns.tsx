@@ -43,7 +43,7 @@ const ActionsCell = ({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onShow(record)}
+              onClick={() => onShow(record)}              
             >
               <Eye className="h-4 w-4" />
               <span className="sr-only">Show PDF</span>

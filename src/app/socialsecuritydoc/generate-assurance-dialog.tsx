@@ -120,6 +120,7 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
                     <div className="py-4 space-y-6 min-h-[200px]">
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Patient</label>
+
                             <Popover open={isPatientPopoverOpen} onOpenChange={setIsPatientPopoverOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -133,7 +134,7 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
                                         : "Select a patient..."}
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
-                                </PopoverTrigger>
+                                </PopoverTrigger> 
                                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                     <Command>
                                         <CommandInput placeholder="Search patient..." />
@@ -194,13 +195,13 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
                                 value={actSearchQuery}
                                 onChange={(e) => setActSearchQuery(e.target.value)}
                             />
-                            <ScrollArea className="h-[calc(100%-40px)] rounded-md border p-2">
+                            <ScrollArea className="h-[350px] rounded-md border p-2">
                             {displayedActs.length > 0 ? (
                                 displayedActs.map(act => {
                                     const currentSelection = selectedActs.find(a => a.act.code === act.code);
                                     const isSelected = !!currentSelection;
                                     return (
-                                        <div key={act.code} className="p-2 hover:bg-muted rounded-md border-b">
+                                        <div key={act.code} className="p-2 hover:bg-muted rounded-md border-b ">
                                             <div className="flex items-start space-x-2">
                                                 <input
                                                     type="checkbox"

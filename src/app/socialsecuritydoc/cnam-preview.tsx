@@ -29,35 +29,75 @@ export default function CNAMPreview({ record }: { record: SocialSecurityDocument
         const { patient, acts } = record;
         const pdfDoc = await PDFDocument.load(formBytes);
         const page = pdfDoc.getPage(0);
+        const pageConsultation = pdfDoc.getPage(1);
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-        // --- Patient Info ---
-        if (patient.socialSecurity) {
-          page.drawText(patient.socialSecurity.idAssurance || 'N/A', { x: 140, y: 700, size: 10, font });
-          page.drawText(`${patient.socialSecurity.lastName} ${patient.socialSecurity.firstName}`, { x: 120, y: 678, size: 10, font });
-        }
-        page.drawText(`${patient.lastName} ${patient.firstName}`, { x: 120, y: 652, size: 10, font });
-        page.drawText(patient.address || 'N/A', { x: 120, y: 638, size: 10, font });
+        console.log("Generating PDF...", patient, acts, patient.socialSecurity)
+        // --- Patient Info ---!
+        let yPosition = 490;
+        let yConsultation = 410;
+        let yAssurance = 382;
+        const lineHeight = 25;
+        const xStart = 550;
 
-        // --- Acts Info ---
-        let yPosition = 520;
-        const lineHeight = 18;
+        const type = patient.socialSecurity?.typeAssurance?.toLowerCase();
+
+        if (type === 'cnss') {
+          page.drawText("X", { x:xStart, y: yAssurance, size: 10, font });
+        } else if (type === 'cnrps') {
+          page.drawText("X", { x:xStart+80, y: yAssurance, size: 10, font });
+        } else if (type === 'convention bilatérale') {
+          page.drawText("X", { x: xStart+211, y: yAssurance, size: 10, font });
+        }
         
+        if (patient.socialSecurity) {
+          const spacing = 8 ; // You can adjust this value for more or less space
+          const text = patient.socialSecurity.idAssurance || 'N/A';
+          const y = 405;
+          const fontSize = 14;
+          let x = xStart;
+          for (const char of text) {
+            page.drawText(char, { x, y, size: fontSize, font });
+            const width = font.widthOfTextAtSize(char, fontSize);
+            x += width + spacing;
+          }
+
+          page.drawText(patient.socialSecurity.firstName , { x: xStart , y: 350, size: 10, font });
+          page.drawText(patient.socialSecurity.lastName  , { x: xStart , y: 330, size: 10, font });
+          page.drawText(patient.socialSecurity.address || 'N/A', { x: xStart, y: 310, size: 10, font });
+          page.drawText(patient.socialSecurity.codePostal || 'N/A', { x: xStart, y: 275, size: 10, font });
+
+          page.drawText(patient.firstName , { x: xStart , y: 185, size: 10, font });
+          page.drawText(patient.lastName  , { x: xStart , y: 168, size: 10, font });
+          page.drawText(patient.dob  , { x: xStart , y: 149, size: 10, font });
+          page.drawText(patient.phone  , { x: 620, y: 133, size: 10, font });
+
+  
+        }
+
+
         acts.slice(0, 10).forEach(selectedAct => {
             const { date, dent, cps, code, cotation, honoraire } = selectedAct;
-            
-            page.drawText(format(new Date(date), 'dd/MM/yy'), { x: 45, y: yPosition, size: 10, font });
-            page.drawText(code || '', { x: 100, y: yPosition, size: 9, font });
-            page.drawText(dent || '', { x: 200, y: yPosition, size: 10, font });
-            page.drawText(cotation || '', { x: 230, y: yPosition, size: 10, font });
-            page.drawText(honoraire?.toFixed(3) || '0.000', { x: 280, y: yPosition, size: 10, font });
-            page.drawText(cps || '', { x: 360, y: yPosition, size: 10, font });
-            
+            // --- Consultation Info ---
+            pageConsultation.drawText(format(new Date(date), 'dd/MM/yy'), { x: 65, y: yConsultation, size: 10, font });
+            pageConsultation.drawText('CD', { x: 115, y: yConsultation, size: 10, font });
+            pageConsultation.drawText('50.000', { x: 145, y: yConsultation, size: 10, font });
+            pageConsultation.drawText(cps || '', { x: 205, y: yConsultation, size: 9, font });
+
+            // --- Acts Info ---
+            page.drawText(format(new Date(date), 'dd/MM/yy'), { x: 60, y: yPosition, size: 10, font });
+            page.drawText(dent || '', { x: 110, y: yPosition, size: 10, font });
+            page.drawText(code || '', { x: 140, y: yPosition, size: 9, font });
+            page.drawText(cotation || '', { x: 220, y: yPosition, size: 10, font });
+            page.drawText(honoraire?.toFixed(3) || '0.000', { x: 245, y: yPosition, size: 10, font });
+            page.drawText(cps || '', { x: 295, y: yPosition, size: 10, font });
             yPosition -= lineHeight;
-        });
+
+          });
 
         const totalHonoraire = acts.reduce((sum, item) => sum + (item.honoraire || 0), 0);
-        page.drawText(totalHonoraire.toFixed(3), { x: 280, y: 328, size: 11, font });
+        page.drawText("Total = "+totalHonoraire.toFixed(3), { x: 245, y: 340, size: 11, font });
+
 
 
         const pdfBytes = await pdfDoc.save();
