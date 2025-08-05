@@ -8,6 +8,9 @@ import {
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  SortingState,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -18,6 +21,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -28,20 +39,61 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+    const [sorting, setSorting] = React.useState<SortingState>([
+        { id: "generationDate", desc: true },
+    ]);
+    const [globalFilter, setGlobalFilter] = React.useState("");
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      globalFilter,
+    },
     initialState: {
         pagination: {
-            pageSize: 5,
+            pageSize: 10,
         },
     }
   });
+  
+  const handleSortChange = (value: string) => {
+    if (!value) {
+      table.resetSorting();
+      return;
+    }
+    const [id, dir] = value.split("-");
+    table.setSorting([{ id, desc: dir === "desc" }]);
+  };
+
+  const currentSort = sorting.length > 0 ? `${sorting[0].id}-${sorting[0].desc ? 'desc' : 'asc'}` : '';
 
   return (
     <div>
+        <div className="flex items-center py-4 gap-4">
+            <Input
+            placeholder="Filter by patient name..."
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="max-w-sm"
+            />
+            <Select onValueChange={handleSortChange} value={currentSort}>
+            <SelectTrigger className="w-[240px]">
+                <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="generationDate-desc">Newest First</SelectItem>
+                <SelectItem value="generationDate-asc">Oldest First</SelectItem>
+            </SelectContent>
+            </Select>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -92,23 +144,45 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+       <div className="flex items-center justify-between py-4">
+        <div className="text-sm text-muted-foreground">
+          Total: {table.getCoreRowModel().rows.length} documents
+        </div>
+        <div className="flex items-center gap-2">
+            <Select
+                value={`${table.getState().pagination.pageSize}`}
+                onValueChange={(value) => {
+                    table.setPageSize(Number(value));
+                }}
+            >
+                <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder={`Show ${table.getState().pagination.pageSize}`} />
+                </SelectTrigger>
+                <SelectContent side="top">
+                    {[10, 20, 50, 100].map((pageSize) => (
+                        <SelectItem key={pageSize} value={`${pageSize}`}>
+                            Show {pageSize}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+            >
+                Previous
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+            >
+                Next
+            </Button>
+        </div>
       </div>
     </div>
   );

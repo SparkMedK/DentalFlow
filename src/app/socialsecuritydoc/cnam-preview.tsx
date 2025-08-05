@@ -25,14 +25,12 @@ export default function CNAMPreview({ record }: { record: SocialSecurityDocument
           }
           return res.arrayBuffer();
         });
-        console.log('record ', record)
         const { patient, acts } = record;
         const pdfDoc = await PDFDocument.load(formBytes);
         const page = pdfDoc.getPage(0);
         const pageConsultation = pdfDoc.getPage(1);
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
-        console.log("Generating PDF...", patient, acts)
         // --- Patient Info ---!
         let yPosition = 490;
         let yProthese = 145;
@@ -79,7 +77,6 @@ export default function CNAMPreview({ record }: { record: SocialSecurityDocument
 
         acts.slice(0, 10).forEach(selectedAct => {
             const { date, dent, cps, code, cotation, honoraire, sectionTitle } = selectedAct;
-            console.log(' sectionTitle ', sectionTitle)
             if (sectionTitle == "SECTION VI: PROTHÈSE DENTAIRE")
             {
               // --- Acts Prothese Info ---

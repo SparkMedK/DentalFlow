@@ -91,9 +91,9 @@ export const columns = ({
   onShow: (record: SocialSecurityDocument) => void;
 }): ColumnDef<SocialSecurityDocument>[] => [
   {
-    accessorKey: "patient.name",
+    accessorKey: "patientName",
     header: "Patient Name",
-    cell: ({ row }) => `${row.original.patient.firstName} ${row.original.patient.lastName}`,
+    accessorFn: row => `${row.patient.firstName} ${row.patient.lastName}`,
   },
   {
     header: "Acts Performed",
