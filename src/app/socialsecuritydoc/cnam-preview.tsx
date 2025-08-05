@@ -35,6 +35,7 @@ export default function CNAMPreview({ record }: { record: SocialSecurityDocument
         console.log("Generating PDF...", patient, acts)
         // --- Patient Info ---!
         let yPosition = 490;
+        let yProthese = 145;
         let yConsultation = 410;
         let yAssurance = 382;
         const lineHeight = 25;
@@ -78,20 +79,35 @@ export default function CNAMPreview({ record }: { record: SocialSecurityDocument
 
         acts.slice(0, 10).forEach(selectedAct => {
             const { date, dent, cps, code, cotation, honoraire, sectionTitle } = selectedAct;
+            console.log(' sectionTitle ', sectionTitle)
+            if (sectionTitle == "SECTION VI: PROTHÈSE DENTAIRE")
+            {
+              // --- Acts Prothese Info ---
+              page.drawText(format(new Date(date), 'dd/MM/yy'), { x: 60, y: yProthese, size: 10, font });
+              page.drawText(dent || '', { x: 110, y: yProthese, size: 10, font });
+              page.drawText(code || '', { x: 140, y: yProthese, size: 9, font });
+              page.drawText(cotation || '', { x: 220, y: yProthese, size: 10, font });
+              page.drawText(honoraire?.toFixed(3) || '0.000', { x: 245, y: yProthese, size: 10, font });
+              page.drawText(cps || '', { x: 295, y: yProthese, size: 10, font });
+              yProthese -= lineHeight;
+            }
+            else {
+              page.drawText(format(new Date(date), 'dd/MM/yy'), { x: 60, y: yPosition, size: 10, font });
+              page.drawText(dent || '', { x: 110, y: yPosition, size: 10, font });
+              page.drawText(code || '', { x: 140, y: yPosition, size: 9, font });
+              page.drawText(cotation || '', { x: 220, y: yPosition, size: 10, font });
+              page.drawText(honoraire?.toFixed(3) || '0.000', { x: 245, y: yPosition, size: 10, font });
+              page.drawText(cps || '', { x: 295, y: yPosition, size: 10, font });
+              yPosition -= lineHeight;
+            }
             // --- Consultation Info ---
             pageConsultation.drawText(format(new Date(date), 'dd/MM/yy'), { x: 65, y: yConsultation, size: 10, font });
-            pageConsultation.drawText(sectionTitle, { x: 115, y: yConsultation, size: 8, font });
+            pageConsultation.drawText('CD', { x: 115, y: yConsultation, size: 10, font });
             pageConsultation.drawText('50.000', { x: 145, y: yConsultation, size: 10, font });
             pageConsultation.drawText(cps || '', { x: 205, y: yConsultation, size: 9, font });
 
             // --- Acts Info ---
-            page.drawText(format(new Date(date), 'dd/MM/yy'), { x: 60, y: yPosition, size: 10, font });
-            page.drawText(dent || '', { x: 110, y: yPosition, size: 10, font });
-            page.drawText(code || '', { x: 140, y: yPosition, size: 9, font });
-            page.drawText(cotation || '', { x: 220, y: yPosition, size: 10, font });
-            page.drawText(honoraire?.toFixed(3) || '0.000', { x: 245, y: yPosition, size: 10, font });
-            page.drawText(cps || '', { x: 295, y: yPosition, size: 10, font });
-            yPosition -= lineHeight;
+
 
           });
 
