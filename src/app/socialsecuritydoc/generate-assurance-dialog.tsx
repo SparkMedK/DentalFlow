@@ -100,12 +100,12 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
             if (isSelected) {
                 return prev.filter(a => a.act.code !== act.code);
             } else {
-                return [...prev, { date: new Date(), dent: '', cps: '', act, sectionTitle: currentSectionTitle }];
+                return [...prev, { date: new Date(), dent: '', cps: 'XXXXXX', act, sectionTitle: currentSectionTitle }];
             }
         });
     };
     
-    const handleActInputChange = (actCode: string, field: 'dent' | 'cps', value: string) => {
+    const handleActInputChange = (actCode: string, field: 'dent', value: string) => {
         setSelectedActs(prev => 
             prev.map(a => a.act.code === actCode ? { ...a, [field]: value } : a)
         );
@@ -221,16 +221,11 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
                                                 </label>
                                             </div>
                                             {isSelected && (
-                                                <div className="mt-2 pl-6 grid grid-cols-2 gap-2">
+                                                <div className="mt-2 pl-6">
                                                     <Input 
                                                         placeholder="Dent"
                                                         value={currentSelection.dent}
                                                         onChange={(e) => handleActInputChange(act.code, 'dent', e.target.value)}
-                                                    />
-                                                    <Input
-                                                        placeholder="CPS"
-                                                        value={currentSelection.cps}
-                                                        onChange={(e) => handleActInputChange(act.code, 'cps', e.target.value)}
                                                     />
                                                 </div>
                                             )}
@@ -269,3 +264,5 @@ export function GenerateAssuranceDialog({ open, onOpenChange, onComplete }: Gene
         </Dialog>
     );
 }
+
+    
