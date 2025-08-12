@@ -9,11 +9,8 @@ import { ProtectedLayout } from "@/components/protected-layout";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "DentalNKFlow",
-  description: "Manage your dental practice with ease.",
-  icons: {
-    icon: "/favicon.ico",
-  }
+  title: "Dr. Nada Kerkeni",
+  description: "Manage your dental practice with ease."
 };
 
 export default function RootLayout({
@@ -24,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/assets/favicon.ico" />
       </head>
       <body
         className={cn(
