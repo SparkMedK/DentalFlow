@@ -1,10 +1,12 @@
+
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Patient } from "@/lib/types";
-import { MoreHorizontal, ArrowUpDown, Pencil, Trash2, Stethoscope } from "lucide-react";
+import { Pencil, Trash2, Stethoscope, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PatientForm } from "./patient-form";
+import { PatientDetailDialog } from "./patient-detail-dialog";
 import { useState } from "react";
 import { useAppContext } from "@/context/app-context";
 import {
@@ -27,10 +29,13 @@ import {
 import { format } from "date-fns";
 import { ConsultationForm } from "../consultations/consultation-form";
 
+export type PatientWithLastConsultation = Patient & { lastConsultationDate: string | null };
+
 const ActionsCell = ({ patient }: { patient: Patient }) => {
   const { deletePatient } = useAppContext();
   const [isPatientFormOpen, setIsPatientFormOpen] = useState(false);
   const [isConsultationFormOpen, setIsConsultationFormOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const newConsultation = {
       patientId: patient.id,
@@ -48,8 +53,24 @@ const ActionsCell = ({ patient }: { patient: Patient }) => {
         open={isConsultationFormOpen}
         onOpenChange={setIsConsultationFormOpen}
       />
+      <PatientDetailDialog
+        patient={patient}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
       <AlertDialog>
         <div className="flex items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setIsDetailOpen(true)}>
+                <Eye className="h-4 w-4" />
+                <span className="sr-only">View Patient</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>View Patient</p>
+            </TooltipContent>
+          </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={() => setIsPatientFormOpen(true)}>
@@ -102,24 +123,15 @@ const ActionsCell = ({ patient }: { patient: Patient }) => {
   );
 };
 
-export const columns: ColumnDef<Patient>[] = [
+export const columns: ColumnDef<PatientWithLastConsultation>[] = [
   {
     accessorKey: "name",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: "Name",
+    accessorFn: row => `${row.firstName} ${row.lastName}`,
   },
-  {
-    accessorKey: "phone",
-    header: "Phone",
+    {
+    accessorKey: "cin",
+    header: "CIN",
   },
   {
     accessorKey: "dob",
@@ -127,11 +139,21 @@ export const columns: ColumnDef<Patient>[] = [
     cell: ({ row }) => format(new Date(row.original.dob), "MM/dd/yyyy"),
   },
   {
-    accessorKey: "address",
-    header: "Address",
+    accessorKey: "phone",
+    header: "Phone",
   },
   {
     id: "actions",
     cell: ({ row }) => <ActionsCell patient={row.original} />,
   },
+  // Hidden columns for sorting purposes
+  {
+    accessorKey: "createdAt",
+  },
+  {
+    accessorKey: "lastConsultationDate",
+  },
+  {
+      accessorKey: "address",
+  }
 ];

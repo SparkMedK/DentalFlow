@@ -1,14 +1,16 @@
+
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
-import { Consultation } from "@/lib/types";
-import { ArrowUpDown, Pencil, Sparkles, Trash2 } from "lucide-react";
+import { ColumnDef, FilterFn } from "@tanstack/react-table";
+import { Consultation, Patient } from "@/lib/types";
+import { Pencil, Sparkles, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/context/app-context";
 import { useState } from "react";
 import { ConsultationForm } from "./consultation-form";
 import { AiSummaryDialog } from "./ai-summary-dialog";
+import { ConsultationDetailDialog } from "./consultation-detail-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,18 +23,21 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { format } from "date-fns";
+import { type DateRange } from "react-day-picker";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { ConsultationWithPatient } from "./page";
 
 
-const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
+const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }) => {
   const { deleteConsultation } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   return (
     <TooltipProvider>
@@ -46,8 +51,24 @@ const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
         open={isSummaryOpen}
         onOpenChange={setIsSummaryOpen}
       />
+      <ConsultationDetailDialog
+        consultation={consultation}
+        open={isDetailOpen}
+        onOpenChange={setIsDetailOpen}
+      />
       <AlertDialog>
         <div className="flex items-center gap-1">
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={() => setIsDetailOpen(true)}>
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View Details</span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>View Details</p>
+                </TooltipContent>
+            </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" onClick={() => setIsSummaryOpen(true)}>
@@ -102,28 +123,42 @@ const ActionsCell = ({ consultation }: { consultation: Consultation }) => {
   );
 };
 
-export const columns: ColumnDef<Consultation>[] = [
+const dateFilterFn: FilterFn<any> = (row, columnId, value) => {
+    const date = new Date(row.getValue(columnId));
+    const range = value as DateRange | undefined;
+
+    if (!range?.from) {
+      return true;
+    }
+    
+    date.setHours(0, 0, 0, 0);
+
+    const fromDate = new Date(range.from);
+    fromDate.setHours(0, 0, 0, 0);
+
+    if (!range.to) {
+      return date.getTime() === fromDate.getTime();
+    }
+    
+    const toDate = new Date(range.to);
+    toDate.setHours(0, 0, 0, 0);
+
+    return date.getTime() >= fromDate.getTime() && date.getTime() <= toDate.getTime();
+};
+
+export const columns: ColumnDef<ConsultationWithPatient>[] = [
   {
-    accessorKey: "patientId",
+    id: "patientInfo",
     header: "Patient",
-    cell: ({ row }) => {
-      const { getPatientById } = useAppContext();
-      const patient = getPatientById(row.original.patientId);
-      return patient ? patient.name : "Unknown";
-    },
+    cell: ({ row }) => row.original.patient ? `${row.original.patient.firstName} ${row.original.patient.lastName}` : "Unknown",
+    accessorFn: (row) =>
+      row.patient ? `${row.patient.firstName} ${row.patient.lastName} ${row.patient.phone} ${row.patient.dob}` : "",
   },
   {
     accessorKey: "date",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Date
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    header: "Date",
     cell: ({ row }) => format(new Date(row.original.date), "MM/dd/yyyy"),
+    filterFn: dateFilterFn,
   },
   {
     accessorKey: "time",

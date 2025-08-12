@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -10,8 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Consultation } from "@/lib/types";
-import { useAppContext } from "@/context/app-context";
+import { Consultation, Patient } from "@/lib/types";
 import React, { useState } from "react";
 import { getConsultationSummary } from "@/lib/actions";
 import { Loader2 } from "lucide-react";
@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 
 interface AiSummaryDialogProps {
-  consultation: Consultation;
+  consultation: Consultation & { patient?: Patient };
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -31,11 +31,10 @@ export function AiSummaryDialog({
   open,
   onOpenChange,
 }: AiSummaryDialogProps) {
-  const { getPatientById } = useAppContext();
   const { toast } = useToast();
   const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const patient = getPatientById(consultation.patientId);
+  const patient = consultation.patient;
 
   const handleGenerateSummary = async () => {
     if (!patient) {
@@ -51,7 +50,7 @@ export function AiSummaryDialog({
     setSummary("");
     
     const input = {
-        patientName: patient.name,
+        patientName: `${patient.firstName} ${patient.lastName}`,
         consultationNotes: consultation.reason,
         treatmentPlan: consultation.treatmentPlan,
         followUpActions: consultation.followUpActions,
@@ -98,7 +97,7 @@ export function AiSummaryDialog({
                     <h3 className="font-semibold">Consultation Details</h3>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                    <p><strong>Patient:</strong> {patient.name}</p>
+                    <p><strong>Patient:</strong> {patient.firstName} {patient.lastName}</p>
                     <p><strong>Date:</strong> {format(new Date(consultation.date), "MM/dd/yyyy")} at {consultation.time}</p>
                     <p><strong>Reason:</strong> {consultation.reason}</p>
                     <Separator className="my-2"/>

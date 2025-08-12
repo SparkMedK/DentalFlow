@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, PlusCircle } from "lucide-react";
 import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useAppContext } from "@/context/app-context";
 import { ConsultationForm } from "./consultation-form";
+import type { Consultation, Patient } from "@/lib/types";
+
+export type ConsultationWithPatient = Consultation & { patient?: Patient };
 
 export default function ConsultationsPage() {
-  const { consultations, isLoading } = useAppContext();
+  const { consultations, patients, isLoading } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const augmentedConsultations: ConsultationWithPatient[] = useMemo(() => {
+    if (isLoading) return [];
+    return consultations.map(consultation => {
+        const patient = patients.find(p => p.id === consultation.patientId);
+        return { ...consultation, patient };
+    });
+  }, [consultations, patients, isLoading]);
 
   if (isLoading) {
     return (
@@ -32,7 +43,7 @@ export default function ConsultationsPage() {
           </ConsultationForm>
         </div>
       </div>
-      <DataTable data={consultations} columns={columns} />
+      <DataTable data={augmentedConsultations} columns={columns} />
     </div>
   );
 }
