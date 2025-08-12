@@ -50,7 +50,6 @@ const patientSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters."),
   lastName: z.string().min(2, "Last name must be at least 2 characters."),
   phone: z.string().regex(/^\d{8}$/, "Phone number must be exactly 8 digits."),
-  cin: z.string().min(1, "CIN is required."),
   dob: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid date."),
   address: z.string().min(1, "Address is required."),
   patientHistory: z.string().min(1, "Patient history is required."),
@@ -81,7 +80,6 @@ export function PatientForm({
       firstName: "",
       lastName: "",
       phone: "",
-      cin: "",
       dob: "",
       address: "",
       patientHistory: "",
@@ -102,7 +100,6 @@ export function PatientForm({
       firstName: "",
       lastName: "",
       phone: "",
-      cin: "",
       dob: "",
       address: "",
       patientHistory: "",
@@ -142,12 +139,7 @@ export function PatientForm({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-        if (!isOpen && form.formState.isDirty) {
-            return;
-        }
-        onOpenChange(isOpen);
-    }}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       {children && <div onClick={() => onOpenChange(true)}>{children}</div>}
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
