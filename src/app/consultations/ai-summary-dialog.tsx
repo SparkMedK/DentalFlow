@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -49,7 +50,7 @@ export function AiSummaryDialog({
     setSummary("");
     
     const input = {
-        patientName: patient.name,
+        patientName: `${patient.firstName} ${patient.lastName}`,
         consultationNotes: consultation.reason,
         treatmentPlan: consultation.treatmentPlan,
         followUpActions: consultation.followUpActions,
@@ -96,7 +97,7 @@ export function AiSummaryDialog({
                     <h3 className="font-semibold">Consultation Details</h3>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                    <p><strong>Patient:</strong> {patient.name}</p>
+                    <p><strong>Patient:</strong> {patient.firstName} {patient.lastName}</p>
                     <p><strong>Date:</strong> {format(new Date(consultation.date), "MM/dd/yyyy")} at {consultation.time}</p>
                     <p><strong>Reason:</strong> {consultation.reason}</p>
                     <Separator className="my-2"/>
