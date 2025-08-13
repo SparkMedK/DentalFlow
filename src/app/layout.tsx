@@ -10,7 +10,10 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "Dr. Nada Kerkeni",
-  description: "Manage your dental practice with ease."
+  description: "Manage your dental practice with ease.",
+  icons: {
+    icon: "/assets/favicon.ico",
+  }
 };
 
 export default function RootLayout({
