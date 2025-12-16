@@ -3,13 +3,12 @@
 
 import { ColumnDef, FilterFn } from "@tanstack/react-table";
 import { Consultation, Patient } from "@/lib/types";
-import { Pencil, Sparkles, Trash2, Eye } from "lucide-react";
+import { Pencil, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAppContext } from "@/context/app-context";
 import { useState } from "react";
 import { ConsultationForm } from "./consultation-form";
-import { AiSummaryDialog } from "./ai-summary-dialog";
 import { ConsultationDetailDialog } from "./consultation-detail-dialog";
 import {
   AlertDialog,
@@ -36,7 +35,6 @@ import type { ConsultationWithPatient } from "./page";
 const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }) => {
   const { deleteConsultation } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   return (
@@ -46,11 +44,6 @@ const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
       />
-      <AiSummaryDialog
-        consultation={consultation}
-        open={isSummaryOpen}
-        onOpenChange={setIsSummaryOpen}
-      />
       <ConsultationDetailDialog
         consultation={consultation}
         open={isDetailOpen}
@@ -58,65 +51,54 @@ const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }
       />
       <AlertDialog>
         <div className="flex items-center gap-1">
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={() => setIsDetailOpen(true)}>
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">View Details</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p>View Details</p>
-                </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={() => setIsSummaryOpen(true)}>
-                        <Sparkles className="h-4 w-4" />
-                        <span className="sr-only">AI Summary</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p>AI Summary</p>
-                </TooltipContent>
-            </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setIsDetailOpen(true)}>
+                <Eye className="h-4 w-4" />
+                <span className="sr-only">View Details</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>View Details</p>
+            </TooltipContent>
+          </Tooltip>
 
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={() => setIsFormOpen(true)}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit Consultation</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p>Edit Consultation</p>
-                </TooltipContent>
-            </Tooltip>
-            
-            <Tooltip>
-                <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Delete Consultation</span>
-                    </Button>
-                </AlertDialogTrigger>
-                <TooltipContent>
-                    <p>Delete Consultation</p>
-                </TooltipContent>
-            </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setIsFormOpen(true)}>
+                <Pencil className="h-4 w-4" />
+                <span className="sr-only">Edit Consultation</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Edit Consultation</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Delete Consultation</span>
+              </Button>
+            </AlertDialogTrigger>
+            <TooltipContent>
+              <p>Delete Consultation</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the consultation record.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => deleteConsultation(consultation.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-            </AlertDialogFooter>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the consultation record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteConsultation(consultation.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </TooltipProvider>
@@ -124,26 +106,26 @@ const ActionsCell = ({ consultation }: { consultation: ConsultationWithPatient }
 };
 
 const dateFilterFn: FilterFn<any> = (row, columnId, value) => {
-    const date = new Date(row.getValue(columnId));
-    const range = value as DateRange | undefined;
+  const date = new Date(row.getValue(columnId));
+  const range = value as DateRange | undefined;
 
-    if (!range?.from) {
-      return true;
-    }
-    
-    date.setHours(0, 0, 0, 0);
+  if (!range?.from) {
+    return true;
+  }
 
-    const fromDate = new Date(range.from);
-    fromDate.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
 
-    if (!range.to) {
-      return date.getTime() === fromDate.getTime();
-    }
-    
-    const toDate = new Date(range.to);
-    toDate.setHours(0, 0, 0, 0);
+  const fromDate = new Date(range.from);
+  fromDate.setHours(0, 0, 0, 0);
 
-    return date.getTime() >= fromDate.getTime() && date.getTime() <= toDate.getTime();
+  if (!range.to) {
+    return date.getTime() === fromDate.getTime();
+  }
+
+  const toDate = new Date(range.to);
+  toDate.setHours(0, 0, 0, 0);
+
+  return date.getTime() >= fromDate.getTime() && date.getTime() <= toDate.getTime();
 };
 
 export const columns: ColumnDef<ConsultationWithPatient>[] = [
@@ -189,13 +171,13 @@ export const columns: ColumnDef<ConsultationWithPatient>[] = [
         status === "Completed"
           ? "default"
           : status === "Scheduled"
-          ? "secondary"
-          : "destructive";
+            ? "secondary"
+            : "destructive";
 
-      if(status === "Completed") {
+      if (status === "Completed") {
         return <Badge className="bg-green-600 hover:bg-green-700">{status}</Badge>
       }
-      if(status === "Scheduled") {
+      if (status === "Scheduled") {
         return <Badge variant="secondary">{status}</Badge>
       }
       return <Badge variant={variant}>{status}</Badge>;
