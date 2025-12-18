@@ -35,7 +35,7 @@ export function Sidebar() {
       <TooltipProvider>
         <nav className="flex flex-col items-center gap-4 px-2 sm:py-5">
           <Link
-            href="#"
+            href="/"
             className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
           >
             <Logo className="h-5 w-5 transition-all group-hover:scale-110" />
