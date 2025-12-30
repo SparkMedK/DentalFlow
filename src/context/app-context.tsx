@@ -5,15 +5,15 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useCa
 import { Patient, Consultation, ActChapter, Act, ActSection, ActGroup, SocialSecurityDocument } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 import { db, auth, onAuthStateChanged, signOut, User } from "@/lib/firebase";
-import { 
-  collection, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  writeBatch, 
-  query, 
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  writeBatch,
+  query,
   where,
   runTransaction
 } from "firebase/firestore";
@@ -58,58 +58,58 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const fetchActData = useCallback(async () => {
     if (!db) return;
     try {
-        const chaptersCollection = collection(db, 'actChapters');
-        const chaptersSnapshot = await getDocs(chaptersCollection);
-        
-        const chaptersListPromises = chaptersSnapshot.docs.map(async (chapterDoc) => {
-            const sectionsCollection = collection(db, 'actChapters', chapterDoc.id, 'sections');
-            const sectionsSnapshot = await getDocs(sectionsCollection);
-            
-            const sectionsListPromises = sectionsSnapshot.docs.map(async (sectionDoc) => {
-                const groupsCollection = collection(db, 'actChapters', chapterDoc.id, 'sections', sectionDoc.id, 'groups');
-                const groupsSnapshot = await getDocs(groupsCollection);
-                
-                const groupsList = groupsSnapshot.docs.map(groupDoc => {
-                    const groupData = groupDoc.data();
-                    return {
-                        title: groupData.title,
-                        acts: groupData.acts || []
-                    } as ActGroup;
-                });
+      const chaptersCollection = collection(db, 'actChapters');
+      const chaptersSnapshot = await getDocs(chaptersCollection);
 
-                return {
-                    id: sectionDoc.id,
-                    title: sectionDoc.data().title,
-                    groups: groupsList,
-                } as ActSection;
-            });
+      const chaptersListPromises = chaptersSnapshot.docs.map(async (chapterDoc) => {
+        const sectionsCollection = collection(db, 'actChapters', chapterDoc.id, 'sections');
+        const sectionsSnapshot = await getDocs(sectionsCollection);
 
-            const sectionsList = await Promise.all(sectionsListPromises);
+        const sectionsListPromises = sectionsSnapshot.docs.map(async (sectionDoc) => {
+          const groupsCollection = collection(db, 'actChapters', chapterDoc.id, 'sections', sectionDoc.id, 'groups');
+          const groupsSnapshot = await getDocs(groupsCollection);
 
+          const groupsList = groupsSnapshot.docs.map(groupDoc => {
+            const groupData = groupDoc.data();
             return {
-                id: chapterDoc.id,
-                title: chapterDoc.data().title,
-                sections: sectionsList,
-            } as ActChapter;
+              title: groupData.title,
+              acts: groupData.acts || []
+            } as ActGroup;
+          });
+
+          return {
+            id: sectionDoc.id,
+            title: sectionDoc.data().title,
+            groups: groupsList,
+          } as ActSection;
         });
 
-        const chaptersList = await Promise.all(chaptersListPromises);
-        setActChapters(chaptersList);
+        const sectionsList = await Promise.all(sectionsListPromises);
+
+        return {
+          id: chapterDoc.id,
+          title: chapterDoc.data().title,
+          sections: sectionsList,
+        } as ActChapter;
+      });
+
+      const chaptersList = await Promise.all(chaptersListPromises);
+      setActChapters(chaptersList);
     } catch (error) {
-        console.error("Error fetching act data:", error);
-        toast({
-          variant: "destructive",
-          title: "Error Fetching Acts",
-          description: "Could not load medical acts data.",
-        });
+      console.error("Error fetching act data:", error);
+      toast({
+        variant: "destructive",
+        title: "Error Fetching Acts",
+        description: "Could not load medical acts data.",
+      });
     }
   }, [toast]);
 
   useEffect(() => {
     if (!auth) {
-        setAuthLoading(false);
-        setDataLoading(false);
-        return;
+      setAuthLoading(false);
+      setDataLoading(false);
+      return;
     }
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -162,19 +162,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     fetchData();
   }, [user, toast, authLoading, fetchActData]);
-  
+
   const signOutUser = async () => {
     if (!auth) return;
     try {
-        await signOut(auth);
-        router.push('/login');
-    } catch(error) {
-        console.error("Error signing out: ", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not sign out. Please try again.",
-        });
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      console.error("Error signing out: ", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not sign out. Please try again.",
+      });
     }
   }
 
@@ -211,11 +211,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const batch = writeBatch(db);
       const patientDoc = doc(db, "patients", patientId);
       batch.delete(patientDoc);
-      
+
       const q = query(collection(db, "consultations"), where("patientId", "==", patientId));
       const consultationsSnapshot = await getDocs(q);
       consultationsSnapshot.forEach((doc) => batch.delete(doc.ref));
-      
+
       await batch.commit();
 
       setPatients(prev => prev.filter(p => p.id !== patientId));
@@ -247,7 +247,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await updateDoc(consultationDoc, consultationData);
       setConsultations(prev => prev.map(c => c.id === id ? updatedConsultation : c));
       toast({ title: "Success", description: "Consultation updated successfully." });
-    } catch(error) {
+    } catch (error) {
       console.error("Error updating consultation:", error);
       toast({ variant: "destructive", title: "Error", description: "Could not update consultation." });
     }
@@ -265,7 +265,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       toast({ variant: "destructive", title: "Error", description: "Could not delete consultation." });
     }
   };
-  
+
   const getPatientById = (patientId: string) => {
     return patients.find(p => p.id === patientId);
   }
@@ -274,84 +274,84 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (!db) throw new Error("Database not initialized");
 
     const groupsQuery = query(
-        collection(db, `actChapters/${chapterId}/sections/${sectionId}/groups`),
-        where("title", "==", groupTitle)
+      collection(db, `actChapters/${chapterId}/sections/${sectionId}/groups`),
+      where("title", "==", groupTitle)
     );
 
     try {
-        await runTransaction(db, async (transaction) => {
-            const groupSnapshot = await getDocs(groupsQuery);
-            if (groupSnapshot.empty) {
-                // If group doesn't exist for an "add" operation, create it.
-                const newGroupRef = doc(collection(db, `actChapters/${chapterId}/sections/${sectionId}/groups`));
-                const newGroupData = { title: groupTitle, acts: [] };
-                const updatedGroup = updateLogic(newGroupData);
-                if (updatedGroup) {
-                    transaction.set(newGroupRef, updatedGroup);
-                }
-                return;
-            }
+      await runTransaction(db, async (transaction) => {
+        const groupSnapshot = await getDocs(groupsQuery);
+        if (groupSnapshot.empty) {
+          // If group doesn't exist for an "add" operation, create it.
+          const newGroupRef = doc(collection(db, `actChapters/${chapterId}/sections/${sectionId}/groups`));
+          const newGroupData = { title: groupTitle, acts: [] };
+          const updatedGroup = updateLogic(newGroupData);
+          if (updatedGroup) {
+            transaction.set(newGroupRef, updatedGroup);
+          }
+          return;
+        }
 
-            const groupDoc = groupSnapshot.docs[0];
-            const groupRef = groupDoc.ref;
-            const groupData = groupDoc.data() as ActGroup;
-            const updatedGroup = updateLogic(groupData);
+        const groupDoc = groupSnapshot.docs[0];
+        const groupRef = groupDoc.ref;
+        const groupData = groupDoc.data() as ActGroup;
+        const updatedGroup = updateLogic(groupData);
 
-            if (updatedGroup) {
-                transaction.update(groupRef, { acts: updatedGroup.acts });
-            } else {
-                // If updateLogic returns null, it means delete the group if empty
-                if(groupData.acts.length === 1) { // Deleting the last act
-                    transaction.delete(groupRef);
-                }
-            }
-        });
-        await fetchActData(); // Refresh data from Firestore
+        if (updatedGroup) {
+          transaction.update(groupRef, { acts: updatedGroup.acts });
+        } else {
+          // If updateLogic returns null, it means delete the group if empty
+          if (groupData.acts.length === 1) { // Deleting the last act
+            transaction.delete(groupRef);
+          }
+        }
+      });
+      await fetchActData(); // Refresh data from Firestore
     } catch (error) {
-        console.error("Transaction failed: ", error);
-        throw error;
+      console.error("Transaction failed: ", error);
+      throw error;
     }
   };
 
   const addAct = async (chapterId: string, sectionId: string, groupTitle: string, act: Act) => {
     try {
-        await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
-            const newActs = [...group.acts, act];
-            return { ...group, acts: newActs };
-        });
-        toast({ title: "Success", description: "Medical act added successfully." });
+      await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
+        const newActs = [...group.acts, act];
+        return { ...group, acts: newActs };
+      });
+      toast({ title: "Success", description: "Medical act added successfully." });
     } catch (e) {
-        toast({ variant: "destructive", title: "Error", description: "Could not add medical act." });
+      toast({ variant: "destructive", title: "Error", description: "Could not add medical act." });
     }
   };
 
   const updateAct = async (chapterId: string, sectionId: string, groupTitle: string, updatedAct: Act) => {
-     try {
-        await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
-            const actIndex = group.acts.findIndex(a => a.code === updatedAct.code);
-            if (actIndex === -1) throw new Error("Act not found");
-            const newActs = [...group.acts];
-            newActs[actIndex] = updatedAct;
-            return { ...group, acts: newActs };
-        });
-        toast({ title: "Success", description: "Medical act updated successfully." });
+    try {
+      await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
+        const actIndex = group.acts.findIndex(a => a.code === updatedAct.code);
+        if (actIndex === -1) throw new Error("Act not found");
+        const newActs = [...group.acts];
+        newActs[actIndex] = updatedAct;
+        return { ...group, acts: newActs };
+      });
+      toast({ title: "Success", description: "Medical act updated successfully." });
     } catch (e) {
-        toast({ variant: "destructive", title: "Error", description: "Could not update medical act." });
+      toast({ variant: "destructive", title: "Error", description: "Could not update medical act." });
     }
   };
 
   const deleteAct = async (chapterId: string, sectionId: string, groupTitle: string, actCode: string) => {
-     try {
-        await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
-            const newActs = group.acts.filter(a => a.code !== actCode);
-            if (newActs.length === 0) {
-              return null; // Signal to delete the group if it becomes empty
-            }
-            return { ...group, acts: newActs };
-        });
-        toast({ title: "Success", description: "Medical act deleted successfully." });
+    try {
+      await runActTransaction(chapterId, sectionId, groupTitle, (group) => {
+        const newActs = group.acts.filter(a => a.code !== actCode);
+        if (newActs.length === 0) {
+          return null; // Signal to delete the group if it becomes empty
+        }
+        return { ...group, acts: newActs };
+      });
+      toast({ title: "Success", description: "Medical act deleted successfully." });
     } catch (e) {
-        toast({ variant: "destructive", title: "Error", description: "Could not delete medical act." });
+      toast({ variant: "destructive", title: "Error", description: "Could not delete medical act." });
     }
   };
 
@@ -381,17 +381,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{ 
+    <AppContext.Provider value={{
       user,
       authLoading,
       signOutUser,
-      patients, 
-      consultations, 
+      patients,
+      consultations,
       actChapters,
       socialSecurityDocuments,
       isLoading: authLoading || dataLoading,
-      addPatient, 
-      updatePatient, 
+      addPatient,
+      updatePatient,
       deletePatient,
       addConsultation,
       updateConsultation,

@@ -13,7 +13,7 @@ async function seedPatients() {
   const batch = db.batch();
   const patientsCollection = db.collection('patients');
 
-  for (let i = 1; i <= 100; i++) {
+  for (let i = 1; i <= 20000; i++) {
     const docRef = patientsCollection.doc(); // auto-ID
     const fakePhone = `5${Math.floor(1000000 + Math.random() * 8999999)}`; // 8-digit phone
     const randomDate = () => {
@@ -23,13 +23,13 @@ async function seedPatients() {
       return `${year}-${month}-${day}`;
     };
     batch.set(docRef, {
-      firstName: `FirstName ${i}`,
-      lastName: `LastName ${i}`,
+      firstName: `Patient ${i}`,
+      lastName: `Ki ${i}`,
       phone: fakePhone,
       address: `Sample Address ${i}`,
       dob: randomDate(),
       patientHistory: `${Math.floor(Math.random() * 90 + 10)}`, // random 2-digit string
-      createdAt: new Date(),      
+      createdAt: new Date(),
     });
   }
 
