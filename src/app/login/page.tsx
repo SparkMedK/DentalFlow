@@ -49,7 +49,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm mx-4">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Logo className="h-10 w-10" />
+            <div className="bg-white p-2 rounded-full">
+              <Logo className="h-10 w-10" />
+            </div>
           </div>
           <CardTitle className="text-2xl">Welcome to Cabinoxel</CardTitle>
           <CardDescription>Sign in to manage your practice</CardDescription>
