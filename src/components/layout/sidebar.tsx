@@ -26,8 +26,9 @@ export function Sidebar() {
     { href: "/", icon: Home, label: "Dashboard" },
     { href: "/patients", icon: Users, label: "Patients" },
     { href: "/consultations", icon: Stethoscope, label: "Consultations" },
-    { href: "/acts", icon: BookText, label: "Medical Acts" },
     { href: "/socialsecuritydoc", icon: FileText, label: "Social Security Documents" },
+    { href: "/acts", icon: BookText, label: "Medical Acts" },
+
   ];
 
   return (
