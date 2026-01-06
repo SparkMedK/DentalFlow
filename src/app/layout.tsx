@@ -9,7 +9,7 @@ import { ProtectedLayout } from "@/components/protected-layout";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Dr. Nada Kerkeni",
+  title: "Cabinoxel",
   description: "Manage your dental practice with ease.",
   icons: {
     icon: "/assets/favicon.ico",
